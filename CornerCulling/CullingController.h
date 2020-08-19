@@ -3,15 +3,13 @@
 */
 
 #pragma once
-#include "CoreMinimal.h"
-#include "CornerCullingCharacter.h"
-#include "GameFramework/Info.h"
-#include "DrawDebugHelpers.h"
 #include "GeometricPrimitives.h"
 #include "FastBVH.h"
 #include <vector>
-#include "CullingController.generated.h"
-
+#include <deque>
+#include <memory>
+#include <glm/vec3.hpp>
+using glm::vec3;
 
 constexpr int SERVER_TICKRATE = 120;
 // Simulated latency in ticks.
@@ -20,31 +18,23 @@ constexpr int CULLING_SIMULATED_LATENCY = 12;
 // Number of peeks in each Bundle.
 constexpr int NUM_PEEKS = 4;
 // Maximum number of characters in a game.
-constexpr int MAX_CHARACTERS = 100;
+// Must equal 65 to align with SourceMod plugin.
+constexpr int MAX_CHARACTERS = 65;
 // Number of cuboids in each entry of the cuboid cache array.
 constexpr int CUBOID_CACHE_SIZE = 3;
 
 /**
  *  Controls all occlusion culling logic.
  */
-UCLASS()
-class ACullingController : public AInfo
+class CullingController
 {
-    GENERATED_BODY()
-
-    // Keeps track of playable characters.
-    std::vector<ACornerCullingCharacter*> Characters;
-    // Tracks if each character is alive.
-    // TODO:
-    //  Integrate with Character class to update status.
-    std::vector<bool> IsAlive;
-    // Tracks team of each character.
-    std::vector<char> Teams;
+    std::vector<vec3> CharacterLocations = std::vector<vec3>(MAX_CHARACTERS + 1);
+    std::vector<float> CharacterYaws = std::vector<float>(MAX_CHARACTERS + 1);
     // Bounding volumes of all characters.
-    std::vector<CharacterBounds> Bounds;
-    // Bounding volumes of all characters at past times.
-    // Used to simulate latency in testing.
-    std::deque<std::vector<CharacterBounds>> PastBounds;
+    std::vector<CharacterBounds> Bounds = std::vector<CharacterBounds>(MAX_CHARACTERS + 1);
+    std::vector<bool> IsAlive = std::vector<bool>(MAX_CHARACTERS + 1);
+    // Tracks team of each character.
+    std::vector<int> CharacterTeams = std::vector<int>(MAX_CHARACTERS + 1);
     // Cache of pointers to cuboids that recently blocked LOS from
     // player i to enemy j. Accessed by CuboidCaches[i][j].
     const Cuboid* CuboidCaches[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE] = { 0 };
@@ -82,10 +72,10 @@ class ACullingController : public AInfo
     // Stores total culling time to calculate an overall average.
     int TotalTime = 0;
 
+    // Cull while gathering and reporting runtime statistics.
+    void BenchmarkCull();
     // Cull visibility for all player, enemy pairs.
     void Cull();
-    // Updates the bounding volumes of characters.
-    void UpdateCharacterBounds();
     // Calculates all bundles of lines of sight between characters,
     // adding them to the BundleQueue for culling.
     void PopulateBundles();
@@ -103,59 +93,52 @@ class ACullingController : public AInfo
     //   Inaccurate on very wide enemies, as the most aggressive angle to peek
     //   the left of an enemy is actually perpendicular to the leftmost point
     //   of the enemy, not its center.
-    static std::vector<FVector> GetPossiblePeeks(
-        const FVector& PlayerCameraLocation,
-        const FVector& EnemyLocation,
+    static std::vector<vec3> GetPossiblePeeks(
+        const vec3& PlayerCameraLocation,
+        const vec3& EnemyLocation,
         float MaxDeltaHorizontal,
         float MaxDeltaVertical);
     // Gets the estimated latency of player i in seconds.
     float GetLatency(int i);
     // Converts culling results into changes in in-game visibility.
     void UpdateVisibility();
-    // Sends character j's location to character i.
-    void SendLocation(int i, int j);
-
-protected:
-    void BeginPlay() override;
 
 public:
-    ACullingController();
-    virtual void Tick(float DeltaTime) override;
-    // Cull while gathering and reporting runtime statistics.
-    void BenchmarkCull();
+    CullingController();
+    void BeginPlay();
+    void Tick();
+    // Returns if player i can see player j
+    bool IsVisible(int i, int j);
+    void UpdateCharacters(int* Teams, float* CentersFlat, float* Yaws);
 
     // Mark a vector. For debugging.
-    static inline void MarkFVector(UWorld* World, const FVector& V)
+    static inline void Markvec3(const vec3& v)
     {
-        DrawDebugLine(World, V, V + FVector(0, 0, 100), FColor::Red, false, 0.1f, 0, 2.f);
     }
 
     // Draw a line between two vectors. For debugging.	
     static inline void ConnectVectors(
-        UWorld* World,
-        const FVector& V1,
-        const FVector& V2,
+        const vec3& v1,
+        const vec3& v2,
         bool Persist = false,
         float Lifespan = 0.1f,
-        float Thickness = 2.0f,
-        FColor Color = FColor::Emerald)
+        float Thickness = 2.0f)
     {
-        DrawDebugLine(World, V1, V2, Color, Persist, Lifespan, 0, Thickness);
     }
 
     // Get the index of the minimum element in an array.
-    static inline int ArgMin(int A[], int Length)
+    static inline int ArgMin(int input[], int length)
     {
-        int Min = INT_MAX;
-        int MinI = 0;
-        for (int i = 0; i < Length; i++)
+        int minVal = INT_MAX;
+        int minI = 0;
+        for (int i = 0; i < length; i++)
         {
-            if (A[i] < Min)
+            if (input[i] < minVal)
             {
-                Min = A[i];
-                MinI = i;
+                minVal = input[i];
+                minI = i;
             }
         }
-        return MinI;
+        return minI;
     }
 };

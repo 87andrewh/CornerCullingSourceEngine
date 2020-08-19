@@ -1,9 +1,9 @@
 #pragma once
 
-#include "FastBVH/BBox.h"
-#include "FastBVH/Intersection.h"
-#include "FastBVH/Iterable.h"
-#include "FastBVH/Ray.h"
+#include "BBox.h"
+#include "Intersection.h"
+#include "Iterable.h"
+#include "Ray.h"
 
 #include <cstdint>
 #include <vector>

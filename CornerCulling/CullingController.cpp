@@ -1,30 +1,40 @@
 #include "CullingController.h"
-#include "OccludingCuboid.h"
-#include "OccludingSphere.h"
-#include "EngineUtils.h"
 #include <chrono> 
+#include <iostream>
 
-ACullingController::ACullingController()
-    : Super()
+CullingController::CullingController()
 {
-    PrimaryActorTick.bCanEverTick = true;
-    PrimaryActorTick.TickGroup = TG_PrePhysics;
 }
 
-void ACullingController::BeginPlay()
+std::vector<vec3> testVertices = {
+    vec3(1000, 2500, 1000),
+    vec3(800, 2500, 1000),
+    vec3(800, 2200, 1000),
+    vec3(1000, 2200, 1000),
+    vec3(1000, 2500, -1000),
+    vec3(800, 2500, -1000),
+    vec3(800, 2200, -1000),
+    vec3(1000, 2200, -1000)
+};
+std::vector<vec3> testVertices2 = {
+    vec3(2000, 2500, 1000),
+    vec3(1800, 2500, 1000),
+    vec3(1800, 2200, 1000),
+    vec3(2000, 2200, 1000),
+    vec3(2000, 2500, -1000),
+    vec3(1800, 2500, -1000),
+    vec3(1800, 2200, -1000),
+    vec3(2000, 2200, -1000)
+};
+
+void CullingController::BeginPlay()
 {
-    Super::BeginPlay();
     // Add characters.
-    for (ACornerCullingCharacter* Player : TActorRange<ACornerCullingCharacter>(GetWorld()))
-    {
-        Characters.emplace_back(Player);
-        IsAlive.emplace_back(true);
-        Teams.emplace_back(Player->Team);
-    }
     // Add occluding cuboids.
-    for (AOccludingCuboid* C : TActorRange<AOccludingCuboid>(GetWorld()))
+    std::vector<Cuboid> MapCuboids = { Cuboid(testVertices), Cuboid(testVertices2) };
+    for (Cuboid C : MapCuboids)
     {
-        Cuboids.emplace_back(Cuboid(C->Vertices));
+        Cuboids.emplace_back(C);
     }
     if (Cuboids.size() > 0)
     {
@@ -39,19 +49,15 @@ void ACullingController::BeginPlay()
             (*CuboidBVH.get(), Intersector);
     }
     // Add occluding spheres.
-    for (AOccludingSphere* S : TActorRange<AOccludingSphere>(GetWorld()))
-    {
-        Spheres.emplace_back(Sphere(S->GetActorLocation(), S->Radius));
-    }
 }
 
-void ACullingController::Tick(float DeltaTime)
+void CullingController::Tick()
 {
     TotalTicks++;
     BenchmarkCull();
 }
 
-void ACullingController::BenchmarkCull()
+void CullingController::BenchmarkCull()
 {
     auto Start = std::chrono::high_resolution_clock::now();
     Cull();
@@ -64,93 +70,34 @@ void ACullingController::BenchmarkCull()
     if ((TotalTicks % RollingWindowLength) == 0)
     {
         RollingAverageTime = RollingTotalTime / RollingWindowLength;
-        if (GEngine)
-        {
-            FVector2D Scale = FVector2D(2.0f, 2.0f);
-            FColor Color = FColor::Yellow;
-            FString Msg = "Average time to cull (microseconds): "
-                + FString::FromInt(int(TotalTime / TotalTicks));
-            GEngine->AddOnScreenDebugMessage(1, 2.0f, Color, Msg, true, Scale);
-            Msg = "Rolling average time to cull (microseconds): "
-                + FString::FromInt(int(RollingAverageTime));
-            GEngine->AddOnScreenDebugMessage(2, 2.0f, Color, Msg, true, Scale);
-            Msg = "Rolling max time to cull (microseconds): "
-                + FString::FromInt(RollingMaxTime);
-            GEngine->AddOnScreenDebugMessage(3, 2.0f, Color, Msg, true, Scale);
-        }
+
+        // "Average time to cull (microseconds): %.2f\n" int(TotalTime / TotalTicks;
+        // "Rolling average time to cull (microseconds): "  RollingAverageTime;
+        //"Rolling max time to cull (microseconds): " RollingMaxTime;
+
         RollingTotalTime = 0;
         RollingMaxTime = 0;
     }
 }
 
-void ACullingController::Cull()
+void CullingController::Cull()
 {
     // TODO:
     //   When running multiple servers per CPU, consider staggering
     //   culling periods to avoid lag spikes.
     if ((TotalTicks % CullingPeriod) == 0)
     {
-        UpdateCharacterBounds();
         PopulateBundles();
         CullWithCache();
-        CullWithSpheres();
+        //CullWithSpheres();
         CullWithCuboids();
     }
 }
 
-void ACullingController::UpdateCharacterBounds()
-{
-    Bounds.clear();
-    // This block simulates latency for testing. Remove in production.
-    // Note that this simulation differs subtly from the real setting,
-    // as a real server defines the exact location of all players
-    // that are not controlled by the client that it is culling for.
-    // In this simulation, the game displays the current positions of enemies,
-    // but the server calculates LOS with delayed positions.
-    if (CULLING_SIMULATED_LATENCY > 0)
-    {
-        // Equivalent to
-        if (PastBounds.size() >= 3)
-        {
-            PastBounds.pop_front();
-        }
-        std::vector<CharacterBounds> CurrentBounds;
-        for (int i = 0; i < Characters.size(); i++)
-        {
-            if (IsAlive[i])
-            {
-                CurrentBounds.emplace(
-                    CurrentBounds.begin() + i,
-                    CharacterBounds(
-                        Characters[i]
-                        ->GetFirstPersonCameraComponent()
-                        ->GetComponentLocation(),
-                        Characters[i]->GetActorTransform()));
-            }
-        }
-        PastBounds.emplace_back(CurrentBounds);
-        Bounds = PastBounds[0];
-    }
-    else
-    {
-        for (int i = 0; i < Characters.size(); i++)
-        {
-            if (IsAlive[i])
-            {
-                Bounds.emplace(
-                    Bounds.begin() + i,
-                    CharacterBounds(
-                        Characters[i]->GetFirstPersonCameraComponent()->GetComponentLocation(),
-                        Characters[i]->GetActorTransform()));
-            }
-        }
-    }
-}
-
-void ACullingController::PopulateBundles()
+void CullingController::PopulateBundles()
 {
     BundleQueue.clear();
-    for (int i = 0; i < Characters.size(); i++)
+    for (int i = 0; i < CharacterLocations.size(); i++)
     {
         if (IsAlive[i])
         {
@@ -159,11 +106,14 @@ void ACullingController::PopulateBundles()
             float Latency = GetLatency(i);
             float MaxHorizontalDisplacement = Latency * 350;
             float MaxVerticalDisplacement = Latency * 200;
-            for (int j = 0; j < Characters.size(); j++)
+            // TEMPORARY
+            MaxHorizontalDisplacement = 100;
+            MaxVerticalDisplacement = 200;
+            for (int j = 0; j < CharacterLocations.size(); j++)
             {
-                if (VisibilityTimers[i][j] == 0
+                if (VisibilityTimers[i][j] <= CullingPeriod
                     && IsAlive[j]
-                    && (Teams[i] != Teams[j]))
+                    && (CharacterTeams[i] != CharacterTeams[j]))
                 {
                     BundleQueue.emplace_back(
                         Bundle(
@@ -186,24 +136,23 @@ void ACullingController::PopulateBundles()
 // which could result in popping.
 // TODO:
 //   Integrate with server latency estimation tools.
-float ACullingController::GetLatency(int i)
+float CullingController::GetLatency(int i)
 {
     return float(CULLING_SIMULATED_LATENCY) / SERVER_TICKRATE;
 }
 
-std::vector<FVector> ACullingController::GetPossiblePeeks(
-    const FVector& PlayerCameraLocation,
-    const FVector& EnemyLocation,
+std::vector<vec3> CullingController::GetPossiblePeeks(
+    const vec3& PlayerCameraLocation,
+    const vec3& EnemyLocation,
     float MaxDeltaHorizontal,
     float MaxDeltaVertical)
 {
-    std::vector<FVector> Corners;
-    FVector PlayerToEnemy =
-        (EnemyLocation - PlayerCameraLocation).GetSafeNormal(1e-6);
+    std::vector<vec3> Corners;
+    vec3 PlayerToEnemy = glm::normalize(EnemyLocation - PlayerCameraLocation);
     // Displacement parallel to the XY plane and perpendicular to PlayerToEnemy.
-    FVector Horizontal =
-        MaxDeltaHorizontal * FVector(-PlayerToEnemy.Y, PlayerToEnemy.X, 0);
-    FVector Vertical = FVector(0, 0, MaxDeltaVertical);
+    vec3 Horizontal =
+        MaxDeltaHorizontal * vec3(-PlayerToEnemy.y, PlayerToEnemy.x, 0);
+    vec3 Vertical = vec3(0, 0, MaxDeltaVertical);
     Corners.emplace_back(PlayerCameraLocation + Horizontal + Vertical);
     Corners.emplace_back(PlayerCameraLocation - Horizontal + Vertical);
     Corners.emplace_back(PlayerCameraLocation - Horizontal - Vertical);
@@ -211,7 +160,7 @@ std::vector<FVector> ACullingController::GetPossiblePeeks(
     return Corners;
 }
 
-void ACullingController::CullWithCache()
+void CullingController::CullWithCache()
 {
     std::vector<Bundle> Remaining;
     for (Bundle B : BundleQueue)
@@ -241,7 +190,7 @@ void ACullingController::CullWithCache()
     BundleQueue = Remaining;
 }
 
-void ACullingController::CullWithSpheres()
+void CullingController::CullWithSpheres()
 {
     std::vector<Bundle> Remaining;
     for (Bundle B : BundleQueue)
@@ -267,7 +216,7 @@ void ACullingController::CullWithSpheres()
     BundleQueue = Remaining;
 }
 
-void ACullingController::CullWithCuboids()
+void CullingController::CullWithCuboids()
 {
     std::vector<Bundle> Remaining;
     for (Bundle B : BundleQueue)
@@ -296,7 +245,7 @@ void ACullingController::CullWithCuboids()
 
 // Increments visibility timers of bundles that were not culled,
 // and reveals enemies with positive visibility timers.
-void ACullingController::UpdateVisibility()
+void CullingController::UpdateVisibility()
 {
     // There are bundles remaining from the culling pipeline.
     for (Bundle B : BundleQueue)
@@ -305,15 +254,14 @@ void ACullingController::UpdateVisibility()
     }
     BundleQueue.clear();
     // Reveal
-    for (int i = 0; i < Characters.size(); i++)
+    for (int i = 0; i < CharacterLocations.size(); i++)
     {
         if (IsAlive[i])
         {
-            for (int j = 0; j < Characters.size(); j++)
+            for (int j = 0; j < CharacterLocations.size(); j++)
             {
-                if (IsAlive[j] && (VisibilityTimers[i][j] > 0))
+                if (IsAlive[j] && VisibilityTimers[i][j] > 0)
                 {
-                    SendLocation(i, j);
                     VisibilityTimers[i][j]--;
                 }
             }
@@ -321,33 +269,31 @@ void ACullingController::UpdateVisibility()
     }
 }
 
-// Draws a line from character i to j, simulating the sending of a location.
-// TODO:
-//   This method is currently just a visualization placeholder,
-//   so integrate server location-sending API when deploying to a game.
-void ACullingController::SendLocation(int i, int j)
+bool CullingController::IsVisible(int i, int j)
 {
-    if (Teams[i] == 0)
+    if (CharacterTeams[i] == CharacterTeams[j])
     {
-        ConnectVectors(
-            GetWorld(),
-            Characters[i]->GetActorLocation() + FVector(0, 0, 40),
-            Characters[j]->GetActorLocation(),
-            false,
-            0.02,
-            7.0f,
-            FColor::Green);
+        return true;
     }
-    else if (Teams[i] == 1)
+    else
     {
-        return;  //  Showing LOS of both teams is a bit cluttered and confusing.
-        ConnectVectors(
-            GetWorld(),
-            Characters[i]->GetActorLocation() + FVector(0, 0, 40),
-            Characters[j]->GetActorLocation(),
-            false,
-            0.02,
-            10.0f,
-            FColor(225, 0, 0, 1));
+        return VisibilityTimers[i][j] > 0;
+    }
+}
+
+void CullingController::UpdateCharacters(int* Teams, float* CentersFlat, float* Yaws)
+{
+    for (int i = 0; i < CharacterLocations.size(); i++)
+    {
+        IsAlive[i] = (Teams[i] > 1);
+        if (IsAlive[i])
+        {
+            CharacterTeams[i] = Teams[i];
+            CharacterLocations[i].x = CentersFlat[i * 3];
+            CharacterLocations[i].y = CentersFlat[i * 3 + 1];
+            CharacterLocations[i].z = CentersFlat[i * 3 + 2];
+            CharacterYaws[i] = Yaws[i];
+            Bounds[i] = CharacterBounds(CharacterLocations[i], CharacterYaws[i]);
+        }
     }
 }

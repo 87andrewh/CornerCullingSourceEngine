@@ -98,22 +98,22 @@ bool BBox<Float>::intersect(
     Float* tnear,
     Float* tfar) const noexcept 
 {
-    Float tx1 = (min.x - Segment.Start.X) * Segment.Reciprocal.X;
-    Float tx2 = (max.x - Segment.Start.X) * Segment.Reciprocal.X;
+    Float tx1 = (min.x - Segment.Start.x) * Segment.Reciprocal.x;
+    Float tx2 = (max.x - Segment.Start.x) * Segment.Reciprocal.x;
     Float tmin = std::min(tx1, tx2);
     Float tmax = std::max(tx1, tx2);
     if (tmin > tmax || tmax < 0 || tmin > 1)
         return false;
 
-    Float ty1 = (min.y - Segment.Start.Y) * Segment.Reciprocal.Y;
-    Float ty2 = (max.y - Segment.Start.Y) * Segment.Reciprocal.Y;
+    Float ty1 = (min.y - Segment.Start.y) * Segment.Reciprocal.y;
+    Float ty2 = (max.y - Segment.Start.y) * Segment.Reciprocal.y;
     tmin = std::max(tmin, std::min(ty1, ty2));
     tmax = std::min(tmax, std::max(ty1, ty2));
     if (tmin > tmax || tmax < 0 || tmin > 1)
         return false;
 
-    Float tz1 = (min.z - Segment.Start.Z) * Segment.Reciprocal.Z;
-    Float tz2 = (max.z - Segment.Start.Z) * Segment.Reciprocal.Z;
+    Float tz1 = (min.z - Segment.Start.z) * Segment.Reciprocal.z;
+    Float tz2 = (max.z - Segment.Start.z) * Segment.Reciprocal.z;
     tmin = std::max(tmin, std::min(tz1, tz2));
     tmax = std::min(tmax, std::max(tz1, tz2));
     if (tmin > tmax || tmax < 0 || tmin > 1)

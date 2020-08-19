@@ -1,4 +1,4 @@
-#include "FastBVH/BuildStrategy.h"
+#include "BuildStrategy.h"
 
 namespace FastBVH {
 

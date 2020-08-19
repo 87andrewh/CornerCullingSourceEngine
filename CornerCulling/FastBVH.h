@@ -31,12 +31,12 @@ namespace
                 float MaxZ = - std::numeric_limits<float>::infinity();
                 for (int i = 0; i < CUBOID_V; i++)
                 {
-                    MinX = std::min(MinX, C.Vertices[i].X);
-                    MinY = std::min(MinY, C.Vertices[i].Y);
-                    MinZ = std::min(MinZ, C.Vertices[i].Z);
-                    MaxX = std::max(MaxX, C.Vertices[i].X);
-                    MaxY = std::max(MaxY, C.Vertices[i].Y);
-                    MaxZ = std::max(MaxZ, C.Vertices[i].Z);
+                    MinX = std::min(MinX, C.Vertices[i].x);
+                    MinY = std::min(MinY, C.Vertices[i].y);
+                    MinZ = std::min(MinZ, C.Vertices[i].z);
+                    MaxX = std::max(MaxX, C.Vertices[i].x);
+                    MaxY = std::max(MaxY, C.Vertices[i].y);
+                    MaxZ = std::max(MaxZ, C.Vertices[i].z);
                 }
                 auto MinVector = Vector3<float>{MinX, MinY, MinZ};
                 auto MaxVector = Vector3<float>{MaxX, MaxY, MaxZ};

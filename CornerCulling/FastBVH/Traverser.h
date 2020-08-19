@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FastBVH/BVH.h"
-#include "GeometricPrimitives.h"
+#include "BVH.h"
+#include "../GeometricPrimitives.h"
 #include <vector>
 
 namespace FastBVH {
@@ -27,7 +27,7 @@ namespace FastBVH {
         // of an enemy bounding box.
         const Cuboid* traverse(
             const OptSegment& segment,
-            const std::vector<FVector>& peeks,
+            const std::vector<vec3>& peeks,
             const CharacterBounds& Bounds);
     };
 
@@ -56,12 +56,11 @@ namespace FastBVH {
 
     template <
         typename Float,
-        typename Intersector
-    >
+        typename Intersector>
     const Cuboid*
     Traverser<Float, Intersector>::traverse(
         const OptSegment& segment,
-        const std::vector<FVector>& peeks,
+        const std::vector<vec3>& peeks,
         const CharacterBounds& bounds)
     {
     using Traversal = TraverserImpl::Traversal<Float>;

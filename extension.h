@@ -2,6 +2,7 @@
 #define _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
 
 #include "smsdk_ext.h"
+#include "CornerCulling/CullingController.h"
 
 class Culling : public SDKExtension
 {
