@@ -1,40 +1,21 @@
 #include "CullingController.h"
 #include <chrono> 
 #include <iostream>
+#include "CullingIO.h"
 
-CullingController::CullingController()
-{
-}
-
-std::vector<vec3> testVertices = {
-    vec3(1000, 2500, 1000),
-    vec3(800, 2500, 1000),
-    vec3(800, 2200, 1000),
-    vec3(1000, 2200, 1000),
-    vec3(1000, 2500, -1000),
-    vec3(800, 2500, -1000),
-    vec3(800, 2200, -1000),
-    vec3(1000, 2200, -1000)
-};
-std::vector<vec3> testVertices2 = {
-    vec3(2000, 2500, 1000),
-    vec3(1800, 2500, 1000),
-    vec3(1800, 2200, 1000),
-    vec3(2000, 2200, 1000),
-    vec3(2000, 2500, -1000),
-    vec3(1800, 2500, -1000),
-    vec3(1800, 2200, -1000),
-    vec3(2000, 2200, -1000)
-};
+CullingController::CullingController() {}
 
 void CullingController::BeginPlay()
 {
-    // Add characters.
+    Cuboids.clear();
+    memset(
+        CuboidCaches,
+        0,
+        MAX_CHARACTERS * MAX_CHARACTERS * CUBOID_CACHE_SIZE * sizeof(Cuboid*));
     // Add occluding cuboids.
-    std::vector<Cuboid> MapCuboids = { Cuboid(testVertices), Cuboid(testVertices2) };
-    for (Cuboid C : MapCuboids)
+    for (std::vector<vec3> cuboidVertices : FileToCuboidVertices())
     {
-        Cuboids.emplace_back(C);
+        Cuboids.emplace_back(Cuboid(cuboidVertices));
     }
     if (Cuboids.size() > 0)
     {
@@ -107,8 +88,8 @@ void CullingController::PopulateBundles()
             float MaxHorizontalDisplacement = Latency * 350;
             float MaxVerticalDisplacement = Latency * 200;
             // TEMPORARY
-            MaxHorizontalDisplacement = 100;
-            MaxVerticalDisplacement = 200;
+            MaxHorizontalDisplacement = 8;
+            MaxVerticalDisplacement = 8;
             for (int j = 0; j < CharacterLocations.size(); j++)
             {
                 if (VisibilityTimers[i][j] <= CullingPeriod
@@ -168,6 +149,7 @@ void CullingController::CullWithCache()
         bool Blocked = false;
         for (int k = 0; k < CUBOID_CACHE_SIZE; k++)
         {
+        // Note: does not check if pointer are valid--deleted cuboids
             if (CuboidCaches[B.PlayerI][B.EnemyI][k] != NULL)
             {
                 if (
@@ -218,6 +200,10 @@ void CullingController::CullWithSpheres()
 
 void CullingController::CullWithCuboids()
 {
+    if (Cuboids.size() == 0)
+    {
+        return;
+    }
     std::vector<Bundle> Remaining;
     for (Bundle B : BundleQueue)
     {

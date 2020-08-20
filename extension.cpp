@@ -5,6 +5,7 @@
 #include <string>
 #include <windows.h>
 #include <math.h>
+#include "CornerCulling/CullingIO.h"
 
 CullingController cullingController = CullingController();
 
@@ -76,64 +77,8 @@ cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
         printf(buf);
         return 1;
     }
-   
-    float center[3];
-    float scales[3];
-    float rotations[3];
-    float extents[8][3];
-    int i = 0;
-    std::string line;
-    std::getline(cuboidFile, line);
-    std::istringstream centerStream(line);
-    centerStream >> center[0] >> center[1] >> center[2];
-    std::getline(cuboidFile, line);
-    std::istringstream scaleStream(line);
-    scaleStream >> scales[0] >> scales[1] >> scales[2];
-    std::getline(cuboidFile, line);
-    std::istringstream rotationStream(line);
-    rotationStream >> rotations[0] >> rotations[1] >> rotations[2];
-    // Convert to radians
-    rotations[0] *= M_PI / 180;
-    rotations[1] *= M_PI / 180;
-    rotations[2] *= M_PI / 180;
-    for (int i = 0; i < 8; i++)
-    {
-        std::getline(cuboidFile, line);
-        std::istringstream extentStream(line);
-        extentStream >> extents[i][0] >> extents[i][1] >> extents[i][2];
-    }
-    cuboidFile.close();
-    for (int i = 0; i < 8; i++)
-    {
-        extents[i][0] *= scales[0];
-        extents[i][1] *= scales[1];
-        extents[i][2] *= scales[2];
-    }
-    // Rotate around X axis
-    for (int i = 0; i < 8; i++)
-    {
-        float a = rotations[0];
-        float tmp = cos(a) * extents[i][1] - sin(a) * extents[i][2];
-        extents[i][2] = sin(a) * extents[i][1] + cos(a) * extents[i][2];
-        extents[i][1] = tmp;
-    }
-    // Rotate around Y axis
-    for (int i = 0; i < 8; i++)
-    {
-        float a = rotations[1];
-        float tmp = cos(a) * extents[i][0] + sin(a) * extents[i][2];
-        extents[i][2] = -sin(a) * extents[i][0] + cos(a) * extents[i][2];
-        extents[i][0] = tmp;
-    }
-    // Rotate around Z axis
-    for (int i = 0; i < 8; i++)
-    {
-        float a = rotations[2];
-        float tmp = cos(a) * extents[i][0] - sin(a) * extents[i][1];
-        extents[i][1] = sin(a) * extents[i][0] + cos(a) * extents[i][1];
-        extents[i][0] = tmp;
-    }
 
+    std::vector<vec3> extents = TextToCuboidVertices(cuboidFile);
     int pairs[12][2]
     {
         {0, 1}, {1, 2}, {2, 3}, {3, 0},
@@ -142,12 +87,12 @@ cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
     };
     for (int i = 0; i < 12; i++)
     {
-        edges[i * 6 + 0] = sp_ftoc(center[0] + extents[pairs[i][0]][0]);
-        edges[i * 6 + 1] = sp_ftoc(center[1] + extents[pairs[i][0]][1]);
-        edges[i * 6 + 2] = sp_ftoc(center[2] + extents[pairs[i][0]][2]);
-        edges[i * 6 + 3] = sp_ftoc(center[0] + extents[pairs[i][1]][0]);
-        edges[i * 6 + 4] = sp_ftoc(center[1] + extents[pairs[i][1]][1]);
-        edges[i * 6 + 5] = sp_ftoc(center[2] + extents[pairs[i][1]][2]);
+        edges[i * 6 + 0] = sp_ftoc(extents[pairs[i][0]].x);
+        edges[i * 6 + 1] = sp_ftoc(extents[pairs[i][0]].y);
+        edges[i * 6 + 2] = sp_ftoc(extents[pairs[i][0]].z);
+        edges[i * 6 + 3] = sp_ftoc(extents[pairs[i][1]].x);
+        edges[i * 6 + 4] = sp_ftoc(extents[pairs[i][1]].y);
+        edges[i * 6 + 5] = sp_ftoc(extents[pairs[i][1]].z);
     }
 	return 1;
 }

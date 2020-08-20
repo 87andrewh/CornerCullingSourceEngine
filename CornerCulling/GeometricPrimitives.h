@@ -146,7 +146,6 @@ struct CharacterBounds
     vec3 CameraLocation;
     // Center of character and bounding spheres.
     vec3 Center;
-    float BoundingSphereRadius = 105;
     // Divide vertices into top and bottom to skip the bottom half when
     // a player peeks it from above, and vice versa for peeks from below.
     // This computational shortcut assumes that each bottom vertex is
@@ -165,15 +164,17 @@ struct CharacterBounds
     {
         // TODO: MAKE ACCURATE
         CameraLocation = location;
+        CameraLocation.z += 64;
         Center = location;
-        TopVertices.emplace_back(location + glm::rotate(vec3(30, 15, 100), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(30, -15, 100), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(-30, 15, 100), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(-30, -15, 100), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(30, 15, -100), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(30, -15, -100), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(-30, 15, -100), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(-30, -15, -100), yaw, vec3(0, 0, 1)));
+        Center.z += 35;
+        TopVertices.emplace_back(location + glm::rotate(vec3(25, 0, 70), yaw, vec3(0, 0, 1)));
+        TopVertices.emplace_back(location + glm::rotate(vec3(-15, 0, 70), yaw, vec3(0, 0, 1)));
+        TopVertices.emplace_back(location + glm::rotate(vec3(0, 12, 70), yaw, vec3(0, 0, 1)));
+        TopVertices.emplace_back(location + glm::rotate(vec3(0, -12, 70), yaw, vec3(0, 0, 1)));
+        BottomVertices.emplace_back(location + glm::rotate(vec3(25, 0, 0), yaw, vec3(0, 0, 1)));
+        BottomVertices.emplace_back(location + glm::rotate(vec3(-15, 0, 0), yaw, vec3(0, 0, 1)));
+        BottomVertices.emplace_back(location + glm::rotate(vec3(0, 12, 0), yaw, vec3(0, 0, 1)));
+        BottomVertices.emplace_back(location + glm::rotate(vec3(0, -12, 0), yaw, vec3(0, 0, 1)));
         TopVerticesXs = _mm256_set_ps(
             TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x, 
             TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x);
