@@ -105,7 +105,7 @@ class CullingController
 
 public:
     CullingController();
-    void BeginPlay();
+    void BeginPlay(char* mapName);
     void Tick();
     // Returns if player i can see player j
     bool IsVisible(int i, int j);

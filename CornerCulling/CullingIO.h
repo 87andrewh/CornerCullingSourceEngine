@@ -1,9 +1,9 @@
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <glm/vec3.hpp>
+#include <cstring>
 using glm::vec3;
 
 constexpr float PI = 3.141592653;
@@ -123,14 +123,31 @@ inline std::vector<vec3> TextToAABBVertices(std::ifstream& input)
 }
 
 // Returns a list of cuboid vertices from a text representation in a file
-inline std::vector<std::vector<vec3>> FileToCuboidVertices()
+inline std::vector<std::vector<vec3>> FileToCuboidVertices(char* mapName)
 {
     std::vector<std::vector<vec3>> cuboidVertices;
+    char fileName[64];
+    strncpy(fileName, "culling_", 10);
+    strncat(fileName, mapName, 40);
+    strncat(fileName, ".txt", 10);
     std::ifstream in;
-    in.open("Culling_de_dust2.txt");
+    in.open(fileName);
     if (!in)
     {
-        printf("Hello darkness my old friend");
+        printf(fileName);
+        printf(" not found\n");
+        std::vector<vec3> empty =
+        {
+            vec3(1, 1, 1),
+            vec3(0, 1, 1),
+            vec3(0, 1, 1),
+            vec3(1, 0, 1),
+            vec3(1, 1, 0),
+            vec3(0, 1, 0),
+            vec3(0, 1, 0),
+            vec3(1, 0, 0),
+        };
+        cuboidVertices.push_back(empty);
         return cuboidVertices;
     }
     std::string line;

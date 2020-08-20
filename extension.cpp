@@ -10,13 +10,12 @@
 CullingController cullingController = CullingController();
 
 // Initializes the C++ code.
-// NOTE: currently doesn't set the map
 cell_t SetCullingMap(IPluginContext *pContext, const cell_t *params)
 {
-	char *str;
-	pContext->LocalToString(params[1], &str);
+	char *mapName;
+	pContext->LocalToString(params[1], &mapName);
 
-    cullingController.BeginPlay();
+    cullingController.BeginPlay(mapName);
 
     return 1;
 }
@@ -68,17 +67,7 @@ cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
     cell_t* edges;
     pContext->LocalToPhysAddr(params[1], &edges);
 
-    std::ifstream cuboidFile;
-    cuboidFile.open("RenderedCuboid.txt");
-    if (!cuboidFile)
-    {
-        char buf[256];
-        GetCurrentDirectoryA(256, buf);
-        printf(buf);
-        return 1;
-    }
-
-    std::vector<vec3> extents = TextToCuboidVertices(cuboidFile);
+    std::vector<vec3> firstObject = FileToCuboidVertices("de_dust2")[0];
     int pairs[12][2]
     {
         {0, 1}, {1, 2}, {2, 3}, {3, 0},
@@ -87,12 +76,12 @@ cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
     };
     for (int i = 0; i < 12; i++)
     {
-        edges[i * 6 + 0] = sp_ftoc(extents[pairs[i][0]].x);
-        edges[i * 6 + 1] = sp_ftoc(extents[pairs[i][0]].y);
-        edges[i * 6 + 2] = sp_ftoc(extents[pairs[i][0]].z);
-        edges[i * 6 + 3] = sp_ftoc(extents[pairs[i][1]].x);
-        edges[i * 6 + 4] = sp_ftoc(extents[pairs[i][1]].y);
-        edges[i * 6 + 5] = sp_ftoc(extents[pairs[i][1]].z);
+        edges[i * 6 + 0] = sp_ftoc(firstObject[pairs[i][0]].x);
+        edges[i * 6 + 1] = sp_ftoc(firstObject[pairs[i][0]].y);
+        edges[i * 6 + 2] = sp_ftoc(firstObject[pairs[i][0]].z);
+        edges[i * 6 + 3] = sp_ftoc(firstObject[pairs[i][1]].x);
+        edges[i * 6 + 4] = sp_ftoc(firstObject[pairs[i][1]].y);
+        edges[i * 6 + 5] = sp_ftoc(firstObject[pairs[i][1]].z);
     }
 	return 1;
 }

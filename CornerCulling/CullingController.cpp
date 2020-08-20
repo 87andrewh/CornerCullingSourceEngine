@@ -5,7 +5,7 @@
 
 CullingController::CullingController() {}
 
-void CullingController::BeginPlay()
+void CullingController::BeginPlay(char* mapName)
 {
     Cuboids.clear();
     memset(
@@ -13,7 +13,7 @@ void CullingController::BeginPlay()
         0,
         MAX_CHARACTERS * MAX_CHARACTERS * CUBOID_CACHE_SIZE * sizeof(Cuboid*));
     // Add occluding cuboids.
-    for (std::vector<vec3> cuboidVertices : FileToCuboidVertices())
+    for (std::vector<vec3> cuboidVertices : FileToCuboidVertices(mapName))
     {
         Cuboids.emplace_back(Cuboid(cuboidVertices));
     }
