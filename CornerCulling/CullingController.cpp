@@ -78,7 +78,7 @@ void CullingController::Cull()
 void CullingController::PopulateBundles()
 {
     BundleQueue.clear();
-    for (int i = 0; i < CharacterLocations.size(); i++)
+    for (int i = 0; i < Characters.size(); i++)
     {
         if (IsAlive[i])
         {
@@ -90,19 +90,19 @@ void CullingController::PopulateBundles()
             // TEMPORARY
             MaxHorizontalDisplacement = 8;
             MaxVerticalDisplacement = 8;
-            for (int j = 0; j < CharacterLocations.size(); j++)
+            for (int j = 0; j < Characters.size(); j++)
             {
                 if (VisibilityTimers[i][j] <= CullingPeriod
                     && IsAlive[j]
-                    && (CharacterTeams[i] != CharacterTeams[j]))
+                    && (!sameTeam(i, j)))
                 {
                     BundleQueue.emplace_back(
                         Bundle(
                             i,
                             j,
                             GetPossiblePeeks(
-                                Bounds[i].CameraLocation,
-                                Bounds[j].Center,
+                                Characters[i].Eye,
+                                Characters[j].Eye,
                                 MaxHorizontalDisplacement,
                                 MaxVerticalDisplacement)));
                 }
@@ -155,7 +155,7 @@ void CullingController::CullWithCache()
                 if (
                     IsBlocking(
                         B.PossiblePeeks,
-                        Bounds[B.EnemyI],
+                        Characters[B.EnemyI],
                         CuboidCaches[B.PlayerI][B.EnemyI][k]))
                 {
                     Blocked = true;
@@ -183,7 +183,7 @@ void CullingController::CullWithSpheres()
             if (
                 IsBlocking(
                     B.PossiblePeeks,
-                    Bounds[B.EnemyI],
+                    Characters[B.EnemyI],
                     S))
             {
                 Blocked = true;
@@ -209,10 +209,10 @@ void CullingController::CullWithCuboids()
     {
         const Cuboid* CuboidP = CuboidTraverser.get()->traverse(
             OptSegment(
-                Bounds[B.PlayerI].CameraLocation,
-                Bounds[B.EnemyI].Center),
+                Characters[B.PlayerI].Eye,
+                Characters[B.EnemyI].Eye),
             B.PossiblePeeks,
-            Bounds[B.EnemyI]);
+            Characters[B.EnemyI]);
         if (CuboidP != NULL)
         {
             int MinI = ArgMin(
@@ -240,11 +240,11 @@ void CullingController::UpdateVisibility()
     }
     BundleQueue.clear();
     // Reveal
-    for (int i = 0; i < CharacterLocations.size(); i++)
+    for (int i = 0; i < Characters.size(); i++)
     {
         if (IsAlive[i])
         {
-            for (int j = 0; j < CharacterLocations.size(); j++)
+            for (int j = 0; j < Characters.size(); j++)
             {
                 if (IsAlive[j] && VisibilityTimers[i][j] > 0)
                 {
@@ -257,7 +257,7 @@ void CullingController::UpdateVisibility()
 
 bool CullingController::IsVisible(int i, int j)
 {
-    if (CharacterTeams[i] == CharacterTeams[j])
+    if (sameTeam(i, j))
     {
         return true;
     }
@@ -267,19 +267,24 @@ bool CullingController::IsVisible(int i, int j)
     }
 }
 
-void CullingController::UpdateCharacters(int* Teams, float* CentersFlat, float* Yaws)
+void CullingController::UpdateCharacters(
+    int* Teams,
+    float* EyesFlat,
+    float* BasesFlat,
+    float* Yaws,
+    float* Pitches)
 {
-    for (int i = 0; i < CharacterLocations.size(); i++)
+    for (int i = 0; i < Characters.size(); i++)
     {
         IsAlive[i] = (Teams[i] > 1);
         if (IsAlive[i])
         {
-            CharacterTeams[i] = Teams[i];
-            CharacterLocations[i].x = CentersFlat[i * 3];
-            CharacterLocations[i].y = CentersFlat[i * 3 + 1];
-            CharacterLocations[i].z = CentersFlat[i * 3 + 2];
-            CharacterYaws[i] = Yaws[i];
-            Bounds[i] = CharacterBounds(CharacterLocations[i], CharacterYaws[i]);
+            Characters[i] = CharacterBounds(
+                Teams[i],
+                vec3(EyesFlat[i * 3], EyesFlat[i * 3 + 1], EyesFlat[i * 3 + 2]),
+                vec3(BasesFlat[i * 3], BasesFlat[i * 3 + 1], BasesFlat[i * 3 + 2]),
+                Yaws[i],
+                Pitches[i]);
         }
     }
 }

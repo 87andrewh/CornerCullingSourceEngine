@@ -7,6 +7,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 using glm::vec3;
 
+constexpr float pi = 3.14159265358979323846;
 // Number of vertices and faces of a cuboid.
 constexpr char CUBOID_V = 8;
 constexpr char CUBOID_F = 6;
@@ -137,19 +138,21 @@ struct Bundle
 	}
 };
 
-// A volume that bounds a character.
-// Has a bounding sphere to quickly check visibility.
-// Uses the vertices of a bounding box to accurately check visibility.
+// Data that defines the character in space
 struct CharacterBounds
 {
-    // Location of character's camera.
-    vec3 CameraLocation;
-    // Center of character and bounding spheres.
-    vec3 Center;
+    // Location of character's eyes.
+    vec3 Eye;
+    // Center of the lowest part of the character
+    vec3 Base;
+    // Angle the character is facing
+    float Yaw;
+    float Pitch;
+    int Team;
     // Divide vertices into top and bottom to skip the bottom half when
     // a player peeks it from above, and vice versa for peeks from below.
-    // This computational shortcut assumes that each bottom vertex is
-    // directly below a corresponding top vertex.
+    // This computational shortcut may result in over-aggressive culling
+    // in very rare situations.
     std::vector<vec3> TopVertices;
     std::vector<vec3> BottomVertices;
     // We also precalculate and store representations optimized for SIMD.
@@ -159,22 +162,27 @@ struct CharacterBounds
     __m256 BottomVerticesXs;
     __m256 BottomVerticesYs;
     __m256 BottomVerticesZs;
-    CharacterBounds() : CharacterBounds(vec3(0, 0, 0), 1) {}
-    CharacterBounds(vec3 location, float yaw)
+    CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0) {}
+    CharacterBounds(int team, vec3 eyes, vec3 base, float yaw, float pitch)
     {
-        // TODO: MAKE ACCURATE
-        CameraLocation = location;
-        CameraLocation.z += 64;
-        Center = location;
-        Center.z += 35;
-        TopVertices.emplace_back(location + glm::rotate(vec3(25, 0, 70), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(-15, 0, 70), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(0, 12, 70), yaw, vec3(0, 0, 1)));
-        TopVertices.emplace_back(location + glm::rotate(vec3(0, -12, 70), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(25, 0, 0), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(-15, 0, 0), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(0, 12, 0), yaw, vec3(0, 0, 1)));
-        BottomVertices.emplace_back(location + glm::rotate(vec3(0, -12, 0), yaw, vec3(0, 0, 1)));
+        Eye = eyes;
+        Base = base;
+        Yaw = yaw;
+        Pitch = pitch;
+        Team = team;
+        const vec3 z = vec3(0, 0, 1);
+        float yawR = yaw * pi / 180;
+        // Gun barrel. TODO: rotate by pitch.
+        TopVertices.emplace_back(eyes + glm::rotate(vec3(30, 0, 0), yawR, z));
+        // Body bounding heptahedron.
+        TopVertices.emplace_back(eyes + glm::rotate(vec3( 16,   0, 12), yawR, z));
+        TopVertices.emplace_back(eyes + glm::rotate(vec3(-10, -15, 5), yawR, z));
+        TopVertices.emplace_back(eyes + glm::rotate(vec3(-10,  15, 5), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3( 25,  25, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3(-25,  25, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3(-25, -25, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3( 25, -25, 0), yawR, z));
+
         TopVerticesXs = _mm256_set_ps(
             TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x, 
             TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x);

@@ -28,16 +28,14 @@ constexpr int CUBOID_CACHE_SIZE = 3;
  */
 class CullingController
 {
-    std::vector<vec3> CharacterLocations = std::vector<vec3>(MAX_CHARACTERS + 1);
-    std::vector<float> CharacterYaws = std::vector<float>(MAX_CHARACTERS + 1);
     // Bounding volumes of all characters.
-    std::vector<CharacterBounds> Bounds = std::vector<CharacterBounds>(MAX_CHARACTERS + 1);
+    std::vector<CharacterBounds> Characters =
+        std::vector<CharacterBounds>(MAX_CHARACTERS + 1);
     std::vector<bool> IsAlive = std::vector<bool>(MAX_CHARACTERS + 1);
-    // Tracks team of each character.
-    std::vector<int> CharacterTeams = std::vector<int>(MAX_CHARACTERS + 1);
     // Cache of pointers to cuboids that recently blocked LOS from
     // player i to enemy j. Accessed by CuboidCaches[i][j].
-    const Cuboid* CuboidCaches[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE] = { 0 };
+    const Cuboid* CuboidCaches[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE]
+        = { 0 };
     // Timers that track the last time a cuboid in the cache blocked LOS.
     int CacheTimers[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE] = { 0 };
     // All occluding cuboids in the map.
@@ -102,6 +100,17 @@ class CullingController
     float GetLatency(int i);
     // Converts culling results into changes in in-game visibility.
     void UpdateVisibility();
+    inline bool sameTeam(int i, int j)
+    {
+        if (i < Characters.size() && j < Characters.size())
+        {
+            return Characters[i].Team == Characters[j].Team;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
 public:
     CullingController();
@@ -109,22 +118,12 @@ public:
     void Tick();
     // Returns if player i can see player j
     bool IsVisible(int i, int j);
-    void UpdateCharacters(int* Teams, float* CentersFlat, float* Yaws);
-
-    // Mark a vector. For debugging.
-    static inline void Markvec3(const vec3& v)
-    {
-    }
-
-    // Draw a line between two vectors. For debugging.	
-    static inline void ConnectVectors(
-        const vec3& v1,
-        const vec3& v2,
-        bool Persist = false,
-        float Lifespan = 0.1f,
-        float Thickness = 2.0f)
-    {
-    }
+    void UpdateCharacters(
+        int* Teams,
+        float* EyesFlat,
+        float* BasesFlat,
+        float* Yaws,
+        float* Pitches);
 
     // Get the index of the minimum element in an array.
     static inline int ArgMin(int input[], int length)

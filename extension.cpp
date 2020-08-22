@@ -25,24 +25,34 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
 {
     cell_t* teams;
     pContext->LocalToPhysAddr(params[1], &teams);
-    cell_t* intCentersFlat;
-    pContext->LocalToPhysAddr(params[2], &intCentersFlat);
+    cell_t* intEyesFlat;
+    pContext->LocalToPhysAddr(params[2], &intEyesFlat);
+    cell_t* intBasesFlat;
+    pContext->LocalToPhysAddr(params[3], &intBasesFlat);
     cell_t* intYaws;
-    pContext->LocalToPhysAddr(params[3], &intYaws);
+    pContext->LocalToPhysAddr(params[4], &intYaws);
+    cell_t* intPitches;
+    pContext->LocalToPhysAddr(params[5], &intPitches);
     cell_t* visibility;
-    pContext->LocalToPhysAddr(params[4], &visibility);
+    pContext->LocalToPhysAddr(params[6], &visibility);
 
+    float eyesFlat[(MAX_CHARACTERS + 2) * 3];
+    float basesFlat[(MAX_CHARACTERS + 2) * 3];
     float yaws[MAX_CHARACTERS + 1];
-    float centersFlat[(MAX_CHARACTERS + 2) * 3];
+    float pitches[MAX_CHARACTERS + 1];
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {
+        basesFlat[i * 3] = sp_ctof(intBasesFlat[i * 3]);
+        basesFlat[i * 3 + 1] = sp_ctof(intBasesFlat[i * 3 + 1]);
+        basesFlat[i * 3 + 2] = sp_ctof(intBasesFlat[i * 3 + 2]);
+        eyesFlat[i * 3] = sp_ctof(intEyesFlat[i * 3]);
+        eyesFlat[i * 3 + 1] = sp_ctof(intEyesFlat[i * 3 + 1]);
+        eyesFlat[i * 3 + 2] = sp_ctof(intEyesFlat[i * 3 + 2]);
         yaws[i] = sp_ctof(intYaws[i]);
-        centersFlat[i * 3] = sp_ctof(intCentersFlat[i * 3]);
-        centersFlat[i * 3 + 1] = sp_ctof(intCentersFlat[i * 3 + 1]);
-        centersFlat[i * 3 + 2] = sp_ctof(intCentersFlat[i * 3 + 2]);
+        pitches[i] = sp_ctof(intPitches[i]);
     }
 
-    cullingController.UpdateCharacters(teams, centersFlat, yaws);
+    cullingController.UpdateCharacters(teams, eyesFlat, basesFlat, yaws, pitches);
     cullingController.Tick();
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {
@@ -52,7 +62,8 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
             {
                 if (teams[j] != 0)
                 {
-                    visibility[i * (MAX_CHARACTERS + 1) + j] = cullingController.IsVisible(i, j);
+                    visibility[i * (MAX_CHARACTERS + 1) + j] =
+                        cullingController.IsVisible(i, j);
                 }
             }
         }
