@@ -171,9 +171,15 @@ struct CharacterBounds
         Pitch = pitch;
         Team = team;
         const vec3 z = vec3(0, 0, 1);
+        const vec3 y = vec3(0, 1, 0);
         float yawR = yaw * PI / 180;
+        float pitchR = pitch * PI / 180;
         // Gun barrel. TODO: rotate by pitch.
-        TopVertices.emplace_back(eyes + glm::rotate(vec3(30, 0, 0), yawR, z));
+        vec3 BarrelExtent = glm::rotate(
+            glm::rotate(vec3(100, 0, 0), pitchR, y),
+            yawR,
+            z);
+        TopVertices.emplace_back(eyes + BarrelExtent);
         // Body bounding heptahedron.
         TopVertices.emplace_back(eyes + glm::rotate(vec3( 16,   0, 12), yawR, z));
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10, -15, 5), yawR, z));

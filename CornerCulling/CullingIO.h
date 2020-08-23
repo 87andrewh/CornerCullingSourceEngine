@@ -6,8 +6,6 @@
 #include <cstring>
 using glm::vec3;
 
-constexpr float PI = 3.141592653;
-
 // Returns a cuboid's vertices from a text representation of a Cuboid.
 // Assumes that input is a filestrem already pointing
 // to the first line of a cuboid representation:
@@ -126,9 +124,9 @@ inline std::vector<vec3> TextToAABBVertices(std::ifstream& input)
 inline std::vector<std::vector<vec3>> FileToCuboidVertices(char* mapName)
 {
     std::vector<std::vector<vec3>> cuboidVertices;
-    char fileName[64];
-    strncpy(fileName, "culling_", 10);
-    strncat(fileName, mapName, 40);
+    char fileName[128];
+    strncpy(fileName, "csgo/maps/culling_", 20);
+    strncat(fileName, mapName, 60);
     strncat(fileName, ".txt", 10);
     std::ifstream in;
     in.open(fileName);
