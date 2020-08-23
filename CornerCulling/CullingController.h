@@ -13,7 +13,7 @@ using glm::vec3;
 
 constexpr int SERVER_TICKRATE = 120;
 // Simulated latency in ticks.
-constexpr int CULLING_SIMULATED_LATENCY = 12;
+constexpr int CULLING_SIMULATED_LATENCY = 0;
 
 // Number of peeks in each Bundle.
 constexpr int NUM_PEEKS = 4;

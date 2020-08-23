@@ -7,7 +7,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 using glm::vec3;
 
-constexpr float pi = 3.14159265358979323846;
+constexpr float PI = 3.14159265358979323846;
 // Number of vertices and faces of a cuboid.
 constexpr char CUBOID_V = 8;
 constexpr char CUBOID_F = 6;
@@ -171,7 +171,7 @@ struct CharacterBounds
         Pitch = pitch;
         Team = team;
         const vec3 z = vec3(0, 0, 1);
-        float yawR = yaw * pi / 180;
+        float yawR = yaw * PI / 180;
         // Gun barrel. TODO: rotate by pitch.
         TopVertices.emplace_back(eyes + glm::rotate(vec3(30, 0, 0), yawR, z));
         // Body bounding heptahedron.
