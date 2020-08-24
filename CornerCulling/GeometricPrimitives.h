@@ -176,7 +176,7 @@ struct CharacterBounds
         float pitchR = pitch * PI / 180;
         // Gun barrel. TODO: rotate by pitch.
         vec3 BarrelExtent = glm::rotate(
-            glm::rotate(vec3(100, 0, 0), pitchR, y),
+            glm::rotate(vec3(40, 0, 0), pitchR, y),
             yawR,
             z);
         TopVertices.emplace_back(eyes + BarrelExtent);
