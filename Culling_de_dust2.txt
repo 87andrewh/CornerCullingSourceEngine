@@ -102,7 +102,7 @@ AABB            // Sui wall
 -512.00 -639.54 300.55
 -664.05 192.00 8.76
 
-Cuboid          // long door
+Cuboid          // Long door
 566.5 301.2 100 // Center
 .04 .75 1.3     // Scale
 0 0 120         // Rotation (deg)
@@ -115,7 +115,7 @@ Cuboid          // long door
 -100 -100 -100
 100 -100 -100
 
-Cuboid          // long door
+Cuboid          // Long door
 711.2 292.2 100 // Center
 .04 .70 1.3     // Scale
 0 0 120         // Rotation (deg)
@@ -154,9 +154,38 @@ Cuboid          // Long door
 -100 -100 -100
 100 -100 -100
 
-AABB            // Long doors wall
+AABB        // Long door wall
+715.70 764.21 217.17
+895.00 740.34 -10
+
+AABB        // Long door wall
+707.96 745.92 0
+895 717.64 142.92
+
+AABB        // Long door boxes
+652.65 615.29 74.29
+768.00 709.08 16.95
+
+AABB        // Long door wall ct
+469.58 256.22 233.37
+530 779.93 -20
+
+AABB            // Long door wall ct
 560.01 274.74 169.61
 478.43 301.51 7.45
+
+Cuboid          // Long door wall t
+0 0 0           // Center
+1 1 1           // Scale
+0 0 0           // Rotation (deg)
+744.19 778.94 200 
+896.01 767.98 200 
+959.99 704.00 200 
+944.14 150.30 200 
+744.19 778.94 0
+896.01 767.98 0 
+959.99 704.00 0 
+944.14 150.30 0 
 
 AABB            // Cat building
 -127.16 1264.71 0
@@ -301,52 +330,40 @@ AABB        // A short building
 252.13 1720.04 277.49
 68.62 1536.45 -10.58
 
-AABB        // long doors building
-469.58 256.22 233.37
-530 779.93 -20
-
-AABB        // car building
+AABB        // Car building
 1679.91 1791.83 4.97
 1850.57 1026.68 200.27
 
-AABB        // car building
+AABB        // Car building
 1616.07 1664.15 -50
 1850.57 1026.68 200.27
 
-AABB        // car building
+AABB        // Car building
 1632.00 2766.81 -10
 1817.93 2284.96 286.16
 
-AABB        // long door boxes
-652.65 615.29 74.29
-768.00 709.08 16.95
-
-AABB        // long doors
-715.70 764.21 217.17
-895.00 740.34 -10
-
-AABB        // pit wall
+AABB        // Pit wall
 1247.30 767.27 28.00
 1272.00 190.33 -176.85
 
 
-AABB        // pit wall
+AABB        // Pit wall
 1615.62 705.73 75.64
 1592.00 190.68 -172.49
 
-AABB        // pit wall
+AABB        // Pit wall
 1615.85 769.80 51.81
 1592.00 190.68 -172.49
 
-AABB        // long floor
+AABB        // Long floor
 1250 804.80 -14
 1650.43 2075.93 -13
 
-AABB        // long dumpster
+AABB        // Long dumpster
 899.16 1216.00 122.24
 725.48 1091.01 0.56
 
-AABB        // A long building
+AABB        // Long building
 1248.00 2015.09 270.44
 715.39 1216.00 5.87
 
@@ -505,10 +522,9 @@ Cuboid          // B wall
 -100 -100 -100
 100 -100 -100
 
-
 Cuboid          // B door
--1329 2278.5 90 // Center
-.04 .71 1.3     // Scale
+-1323 2105 50 // Center
+.04 1 1.5     // Scale
 0 0 -26         // Rotation (deg)
 100 100 100     // Vertex 1 extent
 -100 100 100
@@ -520,8 +536,8 @@ Cuboid          // B door
 100 -100 -100
 
 Cuboid          // B door
--1329 2278.5 90 // Center
-.04 .71 1.3     // Scale
+-1329 2278.5 80 // Center
+.04 .71 1.4     // Scale
 0 0 -26         // Rotation (deg)
 100 100 100     // Vertex 1 extent
 -100 100 100
