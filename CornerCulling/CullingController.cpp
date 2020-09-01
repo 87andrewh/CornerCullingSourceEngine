@@ -7,6 +7,7 @@ CullingController::CullingController() {}
 
 void CullingController::BeginPlay(char* mapName)
 {
+    MapName = mapName;
     Cuboids.clear();
     memset(
         CuboidCaches,
@@ -264,6 +265,18 @@ bool CullingController::IsVisible(int i, int j)
     else
     {
         return VisibilityTimers[i][j] > 0;
+    }
+}
+
+bool CullingController::sameTeam(int i, int j)
+{
+    if (i < Characters.size() && j < Characters.size())
+    {
+        return Characters[i].Team == Characters[j].Team;
+    }
+    else
+    {
+        return false;
     }
 }
 

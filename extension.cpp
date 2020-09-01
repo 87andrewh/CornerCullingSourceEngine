@@ -78,7 +78,7 @@ cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
     cell_t* edges;
     pContext->LocalToPhysAddr(params[1], &edges);
 
-    std::vector<vec3> firstObject = FileToCuboidVertices("de_dust2")[0];
+    std::vector<vec3> firstObject = FileToCuboidVertices(cullingController.MapName)[0];
     int pairs[12][2]
     {
         {0, 1}, {1, 2}, {2, 3}, {3, 0},

@@ -100,19 +100,10 @@ class CullingController
     float GetLatency(int i);
     // Converts culling results into changes in in-game visibility.
     void UpdateVisibility();
-    inline bool sameTeam(int i, int j)
-    {
-        if (i < Characters.size() && j < Characters.size())
-        {
-            return Characters[i].Team == Characters[j].Team;
-        }
-        else
-        {
-            return false;
-        }
-    }
+    bool sameTeam(int i, int j);
 
 public:
+    char* MapName = "";
     CullingController();
     void BeginPlay(char* mapName);
     void Tick();
