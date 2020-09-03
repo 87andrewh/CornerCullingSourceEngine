@@ -78,10 +78,13 @@ void CullingController::PopulateBundles()
         {
             continue;
         }
-        // TODO:
-        //   Make displacement a function of game physics and state.
+        // Amount of lookahead to account for latency (milliseconds).
         const int lookahead = std::min(GetLatency(i), maxLookahead);
-        float MaxHorizontalDisplacement = lookahead * MAX_PLAYER_SPEED;
+        // Maximum player speed in units/millisecond.
+        float speed = 0.001f * std::min(
+            Characters[i].Speed + 0.5f * lookahead,
+            MAX_PLAYER_SPEED);
+        float MaxHorizontalDisplacement = lookahead * speed;
         float MaxVerticalDisplacement = 20;
         for (int j = 0; j < Characters.size(); j++)
         {
@@ -276,7 +279,7 @@ void CullingController::UpdateCharacters(
     float* BasesFlat,
     float* Yaws,
     float* Pitches,
-    bool* isMoving)
+    float* Speeds)
 {
     for (int i = 0; i < Characters.size(); i++)
     {
@@ -289,7 +292,7 @@ void CullingController::UpdateCharacters(
                 vec3(BasesFlat[i * 3], BasesFlat[i * 3 + 1], BasesFlat[i * 3 + 2]),
                 Yaws[i],
                 Pitches[i],
-                isMoving[i]);
+                Speeds[i]);
         }
     }
 }

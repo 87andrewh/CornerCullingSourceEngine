@@ -1,4 +1,4 @@
-Cuboid          // Mid door
+            Cuboid          // Mid door
 -493 1617 -20   // Center
 .04 .75 1.3     // Scale
 0 0 63          // Rotation (deg)
@@ -58,7 +58,6 @@ Cuboid          // Sui box
 -473.81 -166.26 0
 -452.82 -80.81 0
 
-
 Cuboid          // Sui building
 0 0 0           // Center
 1 1 1           // Scale
@@ -76,11 +75,11 @@ Cuboid          // Sui building
 0 0 0           // Center
 1 1 1           // Scale
 0 0 0           // Rotation (deg)
-95.87 -256 200  // Vertex 1 extent
+95.87 0 200  // Vertex 1 extent
 -63.41 -480 200
 32.86 -478.71 200
 95.93 -415.3 200
-95.87 -256 -50
+95.87 0 -50
 -63.41 -480 -50
 32.86 -478.71 -50
 95.93 -415.3 -50
@@ -154,15 +153,15 @@ Cuboid          // Long door
 -100 -100 -100
 100 -100 -100
 
-AABB        // Long door wall
+AABB            // Long door wall
 715.70 764.21 217.17
 895.00 740.34 -10
 
-AABB        // Long door wall
+AABB            // Long door wall
 707.96 745.92 0
 895 717.64 142.92
 
-AABB        // Long door boxes
+AABB            // Long door boxes
 652.65 615.29 74.29
 768.00 709.08 16.95
 
@@ -178,14 +177,14 @@ Cuboid          // Long door wall t
 0 0 0           // Center
 1 1 1           // Scale
 0 0 0           // Rotation (deg)
-744.19 778.94 200 
-896.01 767.98 200 
-959.99 704.00 200 
+744.19 778.94 200
 944.14 150.30 200 
-744.19 778.94 0
-896.01 767.98 0 
-959.99 704.00 0 
-944.14 150.30 0 
+959.99 704.00 200 
+896.01 767.98 200 
+744.19 778.94 -10
+944.14 150.30 -10
+959.99 704.00 -10
+896.01 767.98 -10
 
 AABB            // Cat building
 -127.16 1264.71 0
@@ -207,7 +206,6 @@ AABB            // T plat wall
 -1308.02 -127.38 154.81
 -1792.00 -148.46 8.40
 
-
 AABB            // T plat wall
 -1766.97 -641.73 155.19
 -1792.60 -128.16 8.03
@@ -218,7 +216,7 @@ AABB            // Tunnels floor
 
 AABB            // Tunnels stairs box
 -1281.76 1206.32 104.05
--1205.19 1272.61 -50
+-1205.19 1300.00 -50
 
 AABB            // Tunnels outside door
 -1723.38 704.97 246.70
@@ -268,7 +266,6 @@ AABB            // Lower tunnels box
 -782.77 1385.32 29.11
 -855.56 1300.00 -108.92
 
-
 AABB            // Tunnels stairs
 -1027.72 1315.96 60.21
 -800.72 1255.96 -100
@@ -281,113 +278,119 @@ AABB            // Lower tunnels door
 -537.96 1364.32  50
 -510.71 1130.00 -130
 
-AABB        // Mid building
+AABB            // Mid building
 -511.78 720.00 156.89
 -573.70 880.12 -21.08
 
-AABB        // Mid box
+AABB            // Mid box
 -541.47 715.74 150.68
 -639.40 646.70 8.03
 
-AABB        // Cat rail
+AABB            // Cat rail
 -231.93 765.32 27.50
 -257.78 1600.66 -120.94
 
-AABB        // CT ceiling
+AABB            // CT ceiling
 511.80 1780.00 30
 260.84 2732.07 95.3
 
-AABB        // CT A wall
+AABB            // CT A wall
 542.63 2294.80 -110.94
 514.88 2549.38 124
 
-
-AABB        // A Wall
+AABB            // A Wall
 520.00 2400 122.5
 1280.00 2700 0
 
-AABB        // A Wall
+AABB            // A Wall
 544.00 2524.00 124
 516.97 2000 29
 
-AABB        // A floor
+AABB            // A floor
 1025.82 2305.10 0
 1279 2761.42 123.5
 
-AABB        // Xbox
+AABB            // Xbox
 -354.12 1376.34 -31.32
 -258.57 1474.28 -124.47
 
-AABB        // Mid doors building
+AABB            // Mid doors building
 -316.91 1794.83 108.42
 -15.74 1964.90 -109.51
 
-AABB        // Mid doors building
+AABB            // Mid doors building
 -319.65 1724.42 -120
 -134.13 1537.80 195.28
 
-AABB        // A short building
+AABB            // A short building
 252.13 1720.04 277.49
 68.62 1536.45 -10.58
 
-AABB        // Car building
+AABB            // Car building
 1679.91 1791.83 4.97
 1850.57 1026.68 200.27
 
-AABB        // Car building
+AABB            // Car building
 1616.07 1664.15 -50
 1850.57 1026.68 200.27
 
-AABB        // Car building
+AABB            // Car building
 1632.00 2766.81 -10
 1817.93 2284.96 286.16
 
-AABB        // Pit wall
-1247.30 767.27 28.00
-1272.00 190.33 -176.85
+AABB            // Pit ceiling
+1248.00 319.71 0
+1616.07 175.00 300
 
+AABB            // Pit wall
+1272.00 184.95 -182.57
+1248.00 319.44 270.13
 
-AABB        // Pit wall
+AABB            // Pit wall
 1615.62 705.73 75.64
-1592.00 190.68 -172.49
+1592.00 170.68 -172.49
 
-AABB        // Pit wall
+AABB            // Pit wall
 1615.85 769.80 51.81
-1592.00 190.68 -172.49
+1592.00 170.68 -172.49
 
-AABB        // Long floor
+AABB            // Pit wall
+1247.30 767.27 28.00
+1272.00 170.33 -200.85
+
+AABB            // Long floor
 1250 804.80 -14
 1650.43 2075.93 -13
 
-AABB        // Long dumpster
+AABB            // Long dumpster
 899.16 1216.00 122.24
 725.48 1091.01 0.56
 
-AABB        // Long building
+AABB            // Long building
 1248.00 2015.09 270.44
 715.39 1216.00 5.87
 
-AABB        // A short building
+AABB            // A short building
 511.99 1350.84 403.60
 895.52 2048.01 -31.65
 
-AABB        // A ninja
+AABB            // A ninja
 584.20 2711.54 230.05
 695.07 2784.00 100.70
 
-AABB        // A back building
+AABB            // A back building
 1024.12 3079.10 131.61
 259.68 2784.00 276.97
 
-AABB        // A Box
+AABB            // A Box
 1007.05 2495.22 168.20
 1070.29 2431.94 0
 
-AABB        // A Box
+AABB            // A Box
 1253.53 2542.42 169.98
 1189.24 2478.35 0
 
-Cuboid            // CT big box
+Cuboid          // CT big box
 0 0 0
 1 1 1
 0 0 0

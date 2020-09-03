@@ -11,8 +11,8 @@
 #include <glm/vec3.hpp>
 using glm::vec3;
 
-// Maximum speed of a player in units/millisecond.
-constexpr float MAX_PLAYER_SPEED = 0.25;
+// Maximum speed of a player in units/second.
+constexpr float MAX_PLAYER_SPEED = 250;
 // Number of peeks in each Bundle.
 constexpr int NUM_PEEKS = 4;
 // Maximum number of characters in a game.
@@ -121,7 +121,7 @@ public:
         float* BasesFlat,
         float* Yaws,
         float* Pitches,
-        bool* isMoving);
+        float* Speeds);
 
     // Get the index of the minimum element in an array.
     static inline int ArgMin(int input[], int length)

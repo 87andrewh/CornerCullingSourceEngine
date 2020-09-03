@@ -141,6 +141,8 @@ struct Bundle
 // Data that defines the character in space
 struct CharacterBounds
 {
+    // Player's team.
+    int Team;
     // Location of character's eyes.
     vec3 Eye;
     // Center of the lowest part of the character
@@ -148,7 +150,7 @@ struct CharacterBounds
     // Angle the character is facing
     float Yaw;
     float Pitch;
-    int Team;
+    float Speed;
     // Divide vertices into top and bottom to skip the bottom half when
     // a player peeks it from above, and vice versa for peeks from below.
     // This computational shortcut may result in over-aggressive culling
@@ -162,15 +164,16 @@ struct CharacterBounds
     __m256 BottomVerticesXs;
     __m256 BottomVerticesYs;
     __m256 BottomVerticesZs;
-    CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0, true) {}
+    CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0, 0.0) {}
     CharacterBounds(
-        int team, vec3 eyes, vec3 base, float yaw, float pitch, bool isMoving)
+        int team, vec3 eyes, vec3 base, float yaw, float pitch, float speed)
     {
+        Team = team;
         Eye = eyes;
         Base = base;
         Yaw = yaw;
         Pitch = pitch;
-        Team = team;
+        Speed = speed;
         const vec3 z = vec3(0, 0, 1);
         const vec3 y = vec3(0, 1, 0);
         float yawR = yaw * PI / 180;
@@ -186,7 +189,7 @@ struct CharacterBounds
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10, -15, 5), yawR, z));
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10,  15, 5), yawR, z));
         // Radius of the base of the player. Wider when legs are moving.
-        float r = isMoving ? 24 : 16;
+        float r = (speed > 0.1) ? 24 : 16;
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r, -r, 0), yawR, z));

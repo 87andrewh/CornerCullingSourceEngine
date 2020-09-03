@@ -33,8 +33,8 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
     pContext->LocalToPhysAddr(params[4], &intYaws);
     cell_t* intPitches;
     pContext->LocalToPhysAddr(params[5], &intPitches);
-    cell_t* intIsMoving;
-    pContext->LocalToPhysAddr(params[6], &intIsMoving);
+    cell_t* intSpeeds;
+    pContext->LocalToPhysAddr(params[6], &intSpeeds);
     cell_t* visibility;
     pContext->LocalToPhysAddr(params[7], &visibility);
 
@@ -42,7 +42,7 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
     float basesFlat[(MAX_CHARACTERS + 2) * 3];
     float yaws[MAX_CHARACTERS + 1];
     float pitches[MAX_CHARACTERS + 1];
-    bool isMoving[MAX_CHARACTERS + 1];
+    float speeds[MAX_CHARACTERS + 1];
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {
         basesFlat[i * 3] = sp_ctof(intBasesFlat[i * 3]);
@@ -53,11 +53,11 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
         eyesFlat[i * 3 + 2] = sp_ctof(intEyesFlat[i * 3 + 2]);
         yaws[i] = sp_ctof(intYaws[i]);
         pitches[i] = sp_ctof(intPitches[i]);
-        isMoving[i] = (intIsMoving[i] != 0);
+        speeds[i] = sp_ctof(intSpeeds[i]);
     }
 
     cullingController.UpdateCharacters(
-        teams, eyesFlat, basesFlat, yaws, pitches, isMoving);
+        teams, eyesFlat, basesFlat, yaws, pitches, speeds);
     cullingController.Tick();
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {

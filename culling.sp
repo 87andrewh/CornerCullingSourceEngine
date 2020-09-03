@@ -15,7 +15,7 @@ native UpdateVisibility(
         Float:basesFlat[],
         Float:yaws[],
         Float:pitches[],
-        bool:isMoving[],
+        Float:speeds[],
         bool:visibilityFlat[]);
 
 public Plugin:myinfo =
@@ -35,7 +35,7 @@ new Float:eyesFlat[(MAXPLAYERS + 2) * 3];
 new Float:basesFlat[(MAXPLAYERS + 2) * 3];
 new Float:yaws[MAXPLAYERS + 1];
 new Float:pitches[MAXPLAYERS + 1];
-new bool:isMoving[MAXPLAYERS + 1];
+new Float:speeds[MAXPLAYERS + 1];
 // Flattend visibility array. Player i can see player j if
 // [i * (MAXPLAYERS + 1) + j] is true.
 new bool:visibilityFlat[(MAXPLAYERS + 1) * (MAXPLAYERS + 1)];
@@ -238,6 +238,11 @@ public OnClientPutInServer(client)
 public OnGameFrame()
 {
     ticks++;
+    // DEBUG
+    if (ticks % 100 == 0)
+    {
+        UpdateCullingMap();
+    }
     for (new i = 1; i <= MaxClients; i++)
 	{
 		if (IsClientConnected(i) && IsClientInGame(i))
@@ -256,8 +261,7 @@ public OnGameFrame()
             yaws[i] = tmp[1];
             pitches[i] = tmp[0];
             GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", tmp);
-            float speed2 = (tmp[0]*tmp[0] + tmp[1]*tmp[1] + tmp[2]*tmp[2]);
-            isMoving[i] = (speed2 > 0.1);
+            speeds[i] = GetVectorLength(tmp, false);
 		}
 		else
         {
@@ -272,7 +276,7 @@ public OnGameFrame()
             basesFlat,
             yaws,
             pitches,
-            isMoving,
+            speeds,
             visibilityFlat);
 }
 
