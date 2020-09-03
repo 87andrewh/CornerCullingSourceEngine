@@ -36,7 +36,7 @@ void CullingController::BeginPlay(char* mapName)
 void CullingController::Tick()
 {
     TotalTicks++;
-    BenchmarkCull();
+    Cull();
 }
 
 void CullingController::BenchmarkCull()
@@ -44,7 +44,6 @@ void CullingController::BenchmarkCull()
     auto Start = std::chrono::high_resolution_clock::now();
     Cull();
     auto Stop = std::chrono::high_resolution_clock::now();
-    UpdateVisibility();
     int Delta = std::chrono::duration_cast<std::chrono::microseconds>(Stop - Start).count();
     TotalTime += Delta;
     RollingTotalTime += Delta;
@@ -52,11 +51,9 @@ void CullingController::BenchmarkCull()
     if ((TotalTicks % RollingWindowLength) == 0)
     {
         RollingAverageTime = RollingTotalTime / RollingWindowLength;
-
-        // "Average time to cull (microseconds): %.2f\n" int(TotalTime / TotalTicks;
-        // "Rolling average time to cull (microseconds): "  RollingAverageTime;
-        //"Rolling max time to cull (microseconds): " RollingMaxTime;
-
+        std::cout << "Average time to cull (microseconds): " << int(TotalTime / TotalTicks) << "\n";
+        std::cout << "Rolling average time to cull (microseconds): " << RollingAverageTime << "\n";
+        std::cout << "Rolling max time to cull (microseconds): " << RollingMaxTime << "\n";
         RollingTotalTime = 0;
         RollingMaxTime = 0;
     }
@@ -64,16 +61,11 @@ void CullingController::BenchmarkCull()
 
 void CullingController::Cull()
 {
-    // TODO:
-    //   When running multiple servers per CPU, consider staggering
-    //   culling periods to avoid lag spikes.
-    if ((TotalTicks % CullingPeriod) == 0)
-    {
-        PopulateBundles();
-        CullWithCache();
-        //CullWithSpheres();
-        CullWithCuboids();
-    }
+    PopulateBundles();
+    CullWithCache();
+    //CullWithSpheres();
+    CullWithCuboids();
+    UpdateVisibility();
 }
 
 void CullingController::PopulateBundles()
@@ -81,46 +73,42 @@ void CullingController::PopulateBundles()
     BundleQueue.clear();
     for (int i = 0; i < Characters.size(); i++)
     {
-        if (IsAlive[i])
+        // Staggers culling across each CullingPeriod
+        if (!IsAlive[i] || (((i + TotalTicks) % CullingPeriod) != 0))
         {
-            // TODO:
-            //   Make displacement a function of game physics and state.
-            float Latency = GetLatency(i);
-            float MaxHorizontalDisplacement = Latency * 350;
-            float MaxVerticalDisplacement = Latency * 200;
-            // TEMPORARY
-            MaxHorizontalDisplacement = 8;
-            MaxVerticalDisplacement = 8;
-            for (int j = 0; j < Characters.size(); j++)
+            continue;
+        }
+        // TODO:
+        //   Make displacement a function of game physics and state.
+        const int lookahead = std::min(GetLatency(i), maxLookahead);
+        float MaxHorizontalDisplacement = lookahead * MAX_PLAYER_SPEED;
+        float MaxVerticalDisplacement = 20;
+        for (int j = 0; j < Characters.size(); j++)
+        {
+            if (VisibilityTimers[i][j] <= CullingPeriod
+                && IsAlive[j]
+                && !sameTeam(i, j))
             {
-                if (VisibilityTimers[i][j] <= CullingPeriod
-                    && IsAlive[j]
-                    && (!sameTeam(i, j)))
-                {
-                    BundleQueue.emplace_back(
-                        Bundle(
-                            i,
-                            j,
-                            GetPossiblePeeks(
-                                Characters[i].Eye,
-                                Characters[j].Eye,
-                                MaxHorizontalDisplacement,
-                                MaxVerticalDisplacement)));
-                }
+                BundleQueue.emplace_back(
+                    Bundle(
+                        i,
+                        j,
+                        GetPossiblePeeks(
+                            Characters[i].Eye,
+                            Characters[j].Eye,
+                            MaxHorizontalDisplacement,
+                            MaxVerticalDisplacement)));
             }
         }
     }
+    //std::cout << BundleQueue.size() << "\n";
 }
 
-// Estimates the latency of the client controlling character i in seconds.
-// The estimate should be greater than the expected latency,
-// as underestimating latency results in underestimated peeks,
-// which could result in popping.
 // TODO:
 //   Integrate with server latency estimation tools.
-float CullingController::GetLatency(int i)
+int CullingController::GetLatency(int i)
 {
-    return float(CULLING_SIMULATED_LATENCY) / SERVER_TICKRATE;
+    return 200;
 }
 
 std::vector<vec3> CullingController::GetPossiblePeeks(
@@ -208,6 +196,7 @@ void CullingController::CullWithCuboids()
     std::vector<Bundle> Remaining;
     for (Bundle B : BundleQueue)
     {
+        // Traverse the BVH to search for a cuboid that intersects the bundle.
         const Cuboid* CuboidP = CuboidTraverser.get()->traverse(
             OptSegment(
                 Characters[B.PlayerI].Eye,
@@ -235,6 +224,7 @@ void CullingController::CullWithCuboids()
 void CullingController::UpdateVisibility()
 {
     // There are bundles remaining from the culling pipeline.
+    // They represent unblocked sightlines to enemies that should be revealed.
     for (Bundle B : BundleQueue)
     {
         VisibilityTimers[B.PlayerI][B.EnemyI] = VisibilityTimerMax;
@@ -285,7 +275,8 @@ void CullingController::UpdateCharacters(
     float* EyesFlat,
     float* BasesFlat,
     float* Yaws,
-    float* Pitches)
+    float* Pitches,
+    bool* isMoving)
 {
     for (int i = 0; i < Characters.size(); i++)
     {
@@ -297,7 +288,8 @@ void CullingController::UpdateCharacters(
                 vec3(EyesFlat[i * 3], EyesFlat[i * 3 + 1], EyesFlat[i * 3 + 2]),
                 vec3(BasesFlat[i * 3], BasesFlat[i * 3 + 1], BasesFlat[i * 3 + 2]),
                 Yaws[i],
-                Pitches[i]);
+                Pitches[i],
+                isMoving[i]);
         }
     }
 }

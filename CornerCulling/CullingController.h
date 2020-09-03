@@ -11,10 +11,8 @@
 #include <glm/vec3.hpp>
 using glm::vec3;
 
-constexpr int SERVER_TICKRATE = 120;
-// Simulated latency in ticks.
-constexpr int CULLING_SIMULATED_LATENCY = 0;
-
+// Maximum speed of a player in units/millisecond.
+constexpr float MAX_PLAYER_SPEED = 0.25;
 // Number of peeks in each Bundle.
 constexpr int NUM_PEEKS = 4;
 // Maximum number of characters in a game.
@@ -51,9 +49,9 @@ class CullingController
     std::vector<Sphere> Spheres;
     // Queues of line-of-sight bundles needing to be culled.
     std::vector<Bundle> BundleQueue;
-
+    
     // How many frames pass between each cull.
-    int CullingPeriod = 4;
+    int CullingPeriod = 2;
     // Stores how many ticks character j remains visible to character i for.
     int VisibilityTimers[MAX_CHARACTERS][MAX_CHARACTERS] = { 0 };
     // How many ticks an enemy stays visible for after being revealed.
@@ -64,7 +62,7 @@ class CullingController
     // Stores maximum culling time in rolling window.
     int RollingMaxTime = 0;
     // Number of ticks in the rolling window.
-    int RollingWindowLength = SERVER_TICKRATE;
+    int RollingWindowLength = 128;
     // Total ticks since game start.
     int TotalTicks = 0;
     // Stores total culling time to calculate an overall average.
@@ -96,14 +94,22 @@ class CullingController
         const vec3& EnemyLocation,
         float MaxDeltaHorizontal,
         float MaxDeltaVertical);
-    // Gets the estimated latency of player i in seconds.
-    float GetLatency(int i);
+    // Estimates the latency of the client controlling character i in milliseconds.
+    // The estimate should be close to the player's maximum latency,
+    // as underestimates could cause popping.
+    int GetLatency(int i);
     // Converts culling results into changes in in-game visibility.
     void UpdateVisibility();
     bool sameTeam(int i, int j);
 
 public:
     char* MapName = "";
+    // Server tick rate.
+    int tickRate = 128;
+    // Culling system maximum lookahead (millisceonds).
+    // A low value enforces strict culling, but lag may cause popping.
+    // A high value will grant a greater advantage to wallhackers.
+    int maxLookahead = 110;
     CullingController();
     void BeginPlay(char* mapName);
     void Tick();
@@ -114,7 +120,8 @@ public:
         float* EyesFlat,
         float* BasesFlat,
         float* Yaws,
-        float* Pitches);
+        float* Pitches,
+        bool* isMoving);
 
     // Get the index of the minimum element in an array.
     static inline int ArgMin(int input[], int length)

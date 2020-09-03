@@ -162,8 +162,9 @@ struct CharacterBounds
     __m256 BottomVerticesXs;
     __m256 BottomVerticesYs;
     __m256 BottomVerticesZs;
-    CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0) {}
-    CharacterBounds(int team, vec3 eyes, vec3 base, float yaw, float pitch)
+    CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0, true) {}
+    CharacterBounds(
+        int team, vec3 eyes, vec3 base, float yaw, float pitch, bool isMoving)
     {
         Eye = eyes;
         Base = base;
@@ -184,10 +185,12 @@ struct CharacterBounds
         TopVertices.emplace_back(eyes + glm::rotate(vec3( 16,   0, 12), yawR, z));
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10, -15, 5), yawR, z));
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10,  15, 5), yawR, z));
-        BottomVertices.emplace_back(base + glm::rotate(vec3( 25,  25, 0), yawR, z));
-        BottomVertices.emplace_back(base + glm::rotate(vec3(-25,  25, 0), yawR, z));
-        BottomVertices.emplace_back(base + glm::rotate(vec3(-25, -25, 0), yawR, z));
-        BottomVertices.emplace_back(base + glm::rotate(vec3( 25, -25, 0), yawR, z));
+        // Radius of the base of the player. Wider when legs are moving.
+        float r = isMoving ? 24 : 16;
+        BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3(-r, -r, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3( r, -r, 0), yawR, z));
 
         TopVerticesXs = _mm256_set_ps(
             TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x, 

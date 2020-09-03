@@ -14,9 +14,9 @@ cell_t SetCullingMap(IPluginContext *pContext, const cell_t *params)
 {
 	char *mapName;
 	pContext->LocalToString(params[1], &mapName);
-
+    cullingController.tickRate = params[2];
+    cullingController.maxLookahead = params[3];
     cullingController.BeginPlay(mapName);
-
     return 1;
 }
 
@@ -33,13 +33,16 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
     pContext->LocalToPhysAddr(params[4], &intYaws);
     cell_t* intPitches;
     pContext->LocalToPhysAddr(params[5], &intPitches);
+    cell_t* intIsMoving;
+    pContext->LocalToPhysAddr(params[6], &intIsMoving);
     cell_t* visibility;
-    pContext->LocalToPhysAddr(params[6], &visibility);
+    pContext->LocalToPhysAddr(params[7], &visibility);
 
     float eyesFlat[(MAX_CHARACTERS + 2) * 3];
     float basesFlat[(MAX_CHARACTERS + 2) * 3];
     float yaws[MAX_CHARACTERS + 1];
     float pitches[MAX_CHARACTERS + 1];
+    bool isMoving[MAX_CHARACTERS + 1];
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {
         basesFlat[i * 3] = sp_ctof(intBasesFlat[i * 3]);
@@ -50,9 +53,11 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
         eyesFlat[i * 3 + 2] = sp_ctof(intEyesFlat[i * 3 + 2]);
         yaws[i] = sp_ctof(intYaws[i]);
         pitches[i] = sp_ctof(intPitches[i]);
+        isMoving[i] = (intIsMoving[i] != 0);
     }
 
-    cullingController.UpdateCharacters(teams, eyesFlat, basesFlat, yaws, pitches);
+    cullingController.UpdateCharacters(
+        teams, eyesFlat, basesFlat, yaws, pitches, isMoving);
     cullingController.Tick();
     for (int i = 1; i <= MAX_CHARACTERS; i++)
     {
@@ -75,10 +80,13 @@ cell_t UpdateVisibility(IPluginContext *pContext, const cell_t *params)
 // Only used for editing.
 cell_t GetRenderedCuboid(IPluginContext* pContext, const cell_t* params)
 {
-    cell_t* edges;
-    pContext->LocalToPhysAddr(params[1], &edges);
+    char* mapName;
+    pContext->LocalToString(params[1], &mapName);
 
-    std::vector<vec3> firstObject = FileToCuboidVertices(cullingController.MapName)[0];
+    cell_t* edges;
+    pContext->LocalToPhysAddr(params[2], &edges);
+
+    std::vector<vec3> firstObject = FileToCuboidVertices(mapName)[0];
     int pairs[12][2]
     {
         {0, 1}, {1, 2}, {2, 3}, {3, 0},
