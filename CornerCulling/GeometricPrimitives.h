@@ -190,7 +190,7 @@ struct CharacterBounds
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10,  15, 5), yawR, z));
         // Radius of the base of the player. Wider when legs are moving.
         float r = (speed > 0.1) ? 24 : 16;
-        BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
+        BottomVertices.emplace_back(base + glm::rotate(vec3( r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r, -r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3( r, -r, 0), yawR, z));
