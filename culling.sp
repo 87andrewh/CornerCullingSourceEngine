@@ -5,7 +5,7 @@
 
 public Plugin:myinfo =
 {
-	name =			"Shadowkeeper",
+	name =			"Culling",
 	author =		"Andrew H, Playa, old syntax by lkb",
 	description = 	"Improved anti-wallhack",
 	version =		"1.0.0.0",
@@ -27,6 +27,9 @@ new Float:speeds[MAXPLAYERS + 1];
 // [i * (MAXPLAYERS + 1) + j] is true.
 new bool:visibilityFlat[(MAXPLAYERS + 1) * (MAXPLAYERS + 1)];
 
+ConVar maxLookahead = null;
+bool isFFA = false;
+
 public APLRes:AskPluginLoad2(
         Handle:myself, bool:late, String:error[], err_max)
 {
@@ -45,6 +48,14 @@ public OnPluginStart()
     		Wallhack_Hook(i);
     }
     AddNormalSoundHook(SoundHook)
+
+    isFFA = GetConVarInt(FindConVar("mp_teammates_are_enemies")) == 1;
+    maxLookahead = CreateConVar(
+            "culling_maxlookahead",
+            "150",
+            "ms to look ahead");
+    AutoExecConfig(true, "culling");
+
     UpdateCullingMap();
 }
 
@@ -79,11 +90,12 @@ stock UpdateCullingMap()
 {
     new String:mapName[128];
     GetCurrentMap(mapName, 127);
+
     int tickRate = RoundToNearest(1.0 / GetTickInterval());
     // Culling system lookahead (millisceonds).
-    // A low value enforces strict culling, but lag may cause popping.
+    // A low value enforces strict culling,
+    // but laggy clients may experience popping.
     // A high value will grant a greater advantage to wallhackers.
-    ConVar maxLookahead = FindConVar("culling_maxlookahead");
     if (maxLookahead != null)
     {
         SetCullingMap(mapName, tickRate, GetConVarInt(maxLookahead));
@@ -103,17 +115,25 @@ public OnGameFrame()
 		if (IsClientConnected(i) && IsClientInGame(i))
 		{
             teams[i] = GetClientTeam(i);
+            if (isFFA && (teams[i] > 1))
+            {
+                teams[i] = i + 2; 
+            }
+
             GetClientEyePosition(i, tmp);
             eyesFlat[i * 3] = tmp[0];
             eyesFlat[i * 3 + 1] = tmp[1];
             eyesFlat[i * 3 + 2] = tmp[2];
+
             GetClientAbsOrigin(i, tmp);
             basesFlat[i * 3] = tmp[0];
             basesFlat[i * 3 + 1] = tmp[1];
             basesFlat[i * 3 + 2] = tmp[2];
+
             GetClientEyeAngles(i, tmp);
             yaws[i] = tmp[1];
             pitches[i] = tmp[0];
+
             GetEntPropVector(i, Prop_Data, "m_vecAbsVelocity", tmp);
             speeds[i] = GetVectorLength(tmp, false);
 		}
@@ -150,11 +170,17 @@ public Action:SoundHook(
     if (source < 1 || source > MaxClients)
     	return Plugin_Continue;
 
+    // Workaround for "headshot too loud" bug.
+    if (StrContains(sampleName, "bhit_helmet") != -1)
+    	return Plugin_Continue;
+
     // Fix CSGO bad flag
     int fixedFlags = flags & ~(1 << 10);
-    // Asterisk trick for CSGO 
+
+    // Asterisk trick for CSGO sounds
     char fixedSampleName[PLATFORM_MAX_PATH] = "*";
     StrCat(fixedSampleName, PLATFORM_MAX_PATH - 2, sampleName);
+
     // Precache sound
     AddToStringTable(FindStringTable("soundprecache"), fixedSampleName);
     
