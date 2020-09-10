@@ -201,6 +201,11 @@ public Action:SoundHook(
         }
         else
         {
+            // Fixes "self footsteps too loud" bug
+            float fixedVolume = volume;
+            if (clients[i] == source)
+                fixedVolume = volume * 0.5;
+
             EmitSoundToClient(
                     clients[i],
                     fixedSampleName,
@@ -208,7 +213,7 @@ public Action:SoundHook(
                     channel,
                     level,
                     fixedFlags,
-                    volume,
+                    fixedVolume,
                     pitch);
         }
     }
@@ -282,6 +287,9 @@ public Action:Hook_SetTransmit(entity, client)
 // Returns if the client can see the entity
 public bool IsVisible(client, entity)
 {
+    if (IsClientSourceTV(client))
+        return true;
+
     return (visibilityFlat[client * (MAXPLAYERS + 1) + entity]);
 }
 
