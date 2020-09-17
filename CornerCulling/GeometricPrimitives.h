@@ -139,8 +139,14 @@ struct Bundle
 };
 
 // Data that defines the character in space
-struct CharacterBounds
+struct alignas(32) CharacterBounds
 {
+    __m256 TopVerticesXs;
+    __m256 TopVerticesYs;
+    __m256 TopVerticesZs;
+    __m256 BottomVerticesXs;
+    __m256 BottomVerticesYs;
+    __m256 BottomVerticesZs;
     // Player's team.
     int Team;
     // Location of character's eyes.
@@ -158,12 +164,6 @@ struct CharacterBounds
     std::vector<vec3> TopVertices;
     std::vector<vec3> BottomVertices;
     // We also precalculate and store representations optimized for SIMD.
-    __m256 TopVerticesXs;
-    __m256 TopVerticesYs;
-    __m256 TopVerticesZs;
-    __m256 BottomVerticesXs;
-    __m256 BottomVerticesYs;
-    __m256 BottomVerticesZs;
     CharacterBounds() : CharacterBounds(0, vec3(), vec3(), 0, 0, 0.0) {}
     CharacterBounds(
         int team, vec3 eyes, vec3 base, float yaw, float pitch, float speed)

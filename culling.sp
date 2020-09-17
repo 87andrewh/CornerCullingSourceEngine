@@ -52,10 +52,14 @@ public OnPluginStart()
     isFFA = GetConVarInt(FindConVar("mp_teammates_are_enemies")) == 1;
     maxLookahead = CreateConVar(
             "culling_maxlookahead",
-            "150",
+            "120",
             "ms to look ahead");
     AutoExecConfig(true, "culling");
 
+    UpdateCullingMap();
+}
+
+public void OnMapStart() {
     UpdateCullingMap();
 }
 
@@ -63,6 +67,8 @@ public void OnPluginEnd()
 {
 	RemoveNormalSoundHook(SoundHook);
 }
+
+public on
 
 public OnClientPutInServer(client)
 {
@@ -287,7 +293,12 @@ public Action:Hook_SetTransmit(entity, client)
 // Returns if the client can see the entity
 public bool IsVisible(client, entity)
 {
+    // Let SourceTV see everyone
     if (IsClientSourceTV(client))
+        return true;
+    
+    // Let spectators see everyone
+    if (GetClientTeam(client) == 1)
         return true;
 
     return (visibilityFlat[client * (MAXPLAYERS + 1) + entity]);
