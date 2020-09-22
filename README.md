@@ -1,8 +1,12 @@
 # CornerCullingSourceEngine
-A Source port of CornerCulling
 
-Currently being beta tested by 2 community servers.
+- Currently in open beta, working closely with 2 community servers.
+- Supports Dust2, Inferno, and part of Mirage.
+
+
+- Feel free to test it yourself with InstallThis.zip
+- If you encounter a problem, please open a GitHub issue.
 
 TODO
-- Release non-SIMD version for stability/compatibility with old CPUs.
-- Implement automated mapping with no-draw volumes in vmf files.
+- Finish Mirage
+- Test compatibility with ~2011 era CPUS
