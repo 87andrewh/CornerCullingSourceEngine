@@ -3,7 +3,6 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <windows.h>
 #include <math.h>
 #include "CornerCulling/CullingIO.h"
 
