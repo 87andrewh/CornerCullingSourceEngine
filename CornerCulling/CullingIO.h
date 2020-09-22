@@ -6,8 +6,8 @@
 #include <cstring>
 using glm::vec3;
 
-// Returns a cuboid's vertices from a text representation of a Cuboid.
-// Assumes that input is a filestrem already pointing
+// Returns a Cuboid's vertices from a vertex representation.
+// Assumes that input is a filestrem pointing
 // to the first line of a cuboid representation:
 // CenterX      CenterY     CenterZ
 // ScaleX       ScaleY      ScaleZ
@@ -15,27 +15,23 @@ using glm::vec3;
 // Extent1X     Extent1Y    Extent1Z
 // ...          ...         ...
 // Extent8X     Extent8Y    Extent8Z
-inline std::vector<vec3> TextToCuboidVertices(std::ifstream& input)
+inline std::vector<vec3> CuboidVerticesFromVertices(std::ifstream& input)
 {
     float center[3];
     float scales[3];
     float rotations[3];
-    float extents[8][3] = { 0 };
+    float extents[8][3] = {{0}};
     std::string line;
     std::getline(input, line);
-    std::istringstream centerStream(line);
-    centerStream >> center[0] >> center[1] >> center[2];
+    std::istringstream{ line } >> center[0] >> center[1] >> center[2];
     std::getline(input, line);
-    std::istringstream scaleStream(line);
-    scaleStream >> scales[0] >> scales[1] >> scales[2];
+    std::istringstream{ line } >> scales[0] >> scales[1] >> scales[2];
     std::getline(input, line);
-    std::istringstream rotationStream(line);
-    rotationStream >> rotations[0] >> rotations[1] >> rotations[2];
+    std::istringstream{ line } >> rotations[0] >> rotations[1] >> rotations[2];
     for (int i = 0; i < 8; i++)
     {
         std::getline(input, line);
-        std::istringstream extentStream(line);
-        extentStream >> extents[i][0] >> extents[i][1] >> extents[i][2];
+        std::istringstream{ line } >> extents[i][0] >> extents[i][1] >> extents[i][2];
     }
 
     // Convert to radians
@@ -84,12 +80,12 @@ inline std::vector<vec3> TextToCuboidVertices(std::ifstream& input)
     return vertices;
 }
 
-// Returns a cuboid's vertices from a text representation of an AABB.
+// Returns a cuboid's vertices from an AABB representation.
 // Assumes that input is a filestrem already pointing
 // to the first line of a cuboid representation:
 // Vertex1X     Vertex1Y    Vertex1Z
 // Vertex2X     Vertex2Y    Vertex2Z
-inline std::vector<vec3> TextToAABBVertices(std::ifstream& input)
+inline std::vector<vec3> CuboidVerticesFromAABB(std::ifstream& input)
 {
     float v1[3];
     float v2[3];
@@ -97,16 +93,14 @@ inline std::vector<vec3> TextToAABBVertices(std::ifstream& input)
     float max[3];
     std::string line;
     std::getline(input, line);
-    std::istringstream v1Stream(line);
-    v1Stream >> v1[0] >> v1[1] >> v1[2];
+    std::istringstream{ line }  >> v1[0] >> v1[1] >> v1[2];
     std::getline(input, line);
-    std::istringstream v2Stream(line);
-    v2Stream >> v2[0] >> v2[1] >> v2[2];
+    std::istringstream{ line } >> v2[0] >> v2[1] >> v2[2];
     for (int i = 0; i < 3; i++) {
         min[i] = std::min(v1[i], v2[i]);
         max[i] = std::max(v1[i], v2[i]);
     }
-    std::vector<vec3> out =
+    std::vector<vec3> vertices =
     {
         vec3(max[0], max[1], max[2]),
         vec3(min[0], max[1], max[2]),
@@ -117,22 +111,57 @@ inline std::vector<vec3> TextToAABBVertices(std::ifstream& input)
         vec3(min[0], min[1], min[2]),
         vec3(max[0], min[1], min[2]),
     };
-    return out;
+    return vertices;
+}
+
+// Returns a Cuboid from a face representation.
+// Assumes that input is a filestrem already pointing
+// to the first line of a cuboid representation:
+inline Cuboid CuboidFromFaces(std::ifstream& input)
+{
+    std::string line;
+
+    vec3 min;
+    std::getline(input, line);
+    std::istringstream{ line } >> min.x >> min.y >> min.z;
+
+    vec3 max;
+    std::getline(input, line);
+    std::istringstream{ line } >> max.x >> max.y >> max.z;
+
+    std::vector<Face> faces;
+    for (int i = 0; i < 6; i++)
+    {
+        vec3 point;
+        std::getline(input, line);
+        std::istringstream{ line } >> point.x >> point.y >> point.z;
+
+        vec3 normal;
+        std::getline(input, line);
+        std::istringstream{ line } >> normal.x >> normal.y >> normal.z;
+
+        faces.emplace_back(Face(point, normal));
+    }
+
+    return Cuboid(min, max, faces);
 }
 
 // Returns a list of cuboid vertices from a text representation in a file
-inline std::vector<std::vector<vec3>> FileToCuboidVertices(char* mapName)
+inline std::vector<Cuboid> FileToCuboids(char* mapName)
 {
-    std::vector<std::vector<vec3>> cuboidVertices;
+    std::vector<Cuboid> cuboids;
+
     char fileName[128];
     strncpy(fileName, "csgo/maps/culling_", 20);
     strncat(fileName, mapName, 60);
     strncat(fileName, ".txt", 10);
+
     std::ifstream in;
     in.open(fileName);
+
     if (!in)
     {
-        printf(fileName);
+        printf("%s\n", fileName);
         printf(" not found\n");
         std::vector<vec3> empty =
         {
@@ -145,24 +174,75 @@ inline std::vector<std::vector<vec3>> FileToCuboidVertices(char* mapName)
             vec3(0, 1, 0),
             vec3(1, 0, 0),
         };
-        cuboidVertices.push_back(empty);
-        return cuboidVertices;
+        cuboids.push_back(Cuboid(empty));
+        return cuboids;
     }
+
     std::string line;
     while (std::getline(in, line))
     {
         std::string token;
-        std::istringstream stream(line);
-        stream >> token;
+        std::istringstream{ line } >> token;
         if (token == "Cuboid")
         {
-            cuboidVertices.push_back(TextToCuboidVertices(in));
+            cuboids.push_back(Cuboid(CuboidVerticesFromVertices(in)));
         }
         else if (token == "AABB")
         {
-            cuboidVertices.push_back(TextToAABBVertices(in));
+            cuboids.push_back(Cuboid(CuboidVerticesFromAABB(in)));
+        }
+        else if (token == "CuboidFaces")
+        {
+            cuboids.push_back(CuboidFromFaces(in));
         }
     }
     in.close();
-    return cuboidVertices;
+    return cuboids;
+}
+
+// Returns a list of cuboid vertices from a text representation in a file
+inline std::vector<vec3> GetFirstCuboidVertices(char* mapName)
+{
+    auto empty = std::vector<vec3> {
+        vec3(1, 1, 1),
+        vec3(0, 1, 1),
+        vec3(0, 1, 1),
+        vec3(1, 0, 1),
+        vec3(1, 1, 0),
+        vec3(0, 1, 0),
+        vec3(0, 1, 0),
+        vec3(1, 0, 0),
+    };
+
+    char fileName[128];
+    strncpy(fileName, "csgo/maps/culling_", 20);
+    strncat(fileName, mapName, 60);
+    strncat(fileName, ".txt", 10);
+
+    std::ifstream in;
+    in.open(fileName);
+
+    if (!in)
+    {
+        printf("%s\n", fileName);
+        printf(" not found\n");
+        return empty;
+    }
+
+    std::string line;
+    while (std::getline(in, line))
+    {
+        std::string token;
+        std::istringstream{ line } >> token;
+        if (token == "Cuboid")
+        {
+            return CuboidVerticesFromVertices(in);
+        }
+        if (token == "AABB")
+        {
+            return CuboidVerticesFromAABB(in);
+        }
+    }
+
+    return empty;
 }

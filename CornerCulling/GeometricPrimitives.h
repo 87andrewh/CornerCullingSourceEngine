@@ -1,5 +1,6 @@
 #pragma once
 
+#include <immintrin.h>
 #include <algorithm>
 #include <vector>
 #include <glm/glm.hpp>
@@ -7,7 +8,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 using glm::vec3;
 
-constexpr float PI = 3.14159265358979323846;
+constexpr float PI = 3.141592653589793f;
 // Number of vertices and faces of a cuboid.
 constexpr char CUBOID_V = 8;
 constexpr char CUBOID_F = 6;
@@ -15,44 +16,39 @@ constexpr char CUBOID_F = 6;
 constexpr char CUBOID_FACE_V = 4;
 
 // Maps a Face with index i's j-th vertex onto a Cuboid vertex index.
+// Faces are indexed as such:
+//	   .+---------+  
+//	 .' |  0    .'|  
+//	+---+-----+'  |  
+//	|   |    3|   |  
+//	| 4 |     | 2 |  
+//	|   |1    |   |  
+//	|  ,+-----+---+  
+//	|.'    5  | .'   
+//	+---------+'    
 constexpr char FaceCuboidMap[6][4] =
 {
-    0, 1, 2, 3,
-    2, 6, 7, 3,
-    0, 3, 7, 4,
-    0, 4, 5, 1,
-    1, 5, 6, 2,
-    4, 7, 6, 5
+    {0, 1, 2, 3},
+    {2, 6, 7, 3},
+    {0, 3, 7, 4},
+    {0, 4, 5, 1},
+    {1, 5, 6, 2},
+    {4, 7, 6, 5}
 };
 
-// Quadrilateral face of a cuboid.
+// Face of a convex polyhedron.
 struct Face
 {
-	vec3 Normal;
-    // Index of the face in its Cuboid;
-	//	   .+---------+  
-	//	 .' |  0    .'|  
-	//	+---+-----+'  |  
-	//	|   |    3|   |  
-	//	| 4 |     | 2 |  
-	//	|   |1    |   |  
-	//	|  ,+-----+---+  
-	//	|.'    5  | .'   
-	//	+---------+'    
-	//	1 is in front.
-	char Index;
-	Face() {}
-	Face(int i, vec3 Vertices[])
+    // Point on the face
+    vec3 Point = vec3{ 0, 0, 0};
+    // Outward normal of the face
+	vec3 Normal = vec3{0, 0, 1};
+
+    Face(vec3 Point, vec3 Normal)
     {
-		Normal = glm::normalize(glm::cross(
-			Vertices[FaceCuboidMap[i][1]] - Vertices[FaceCuboidMap[i][0]],
-			Vertices[FaceCuboidMap[i][2]] - Vertices[FaceCuboidMap[i][0]]));
-	}
-	Face(const Face& F)
-    {
-        Index = F.Index;
-		Normal = vec3(F.Normal);
-	}
+        this->Point = Point;
+        this->Normal = Normal;
+    }
 };
 
 // A six-sided polyhedron defined by 8 vertices.
@@ -60,9 +56,12 @@ struct Face
 // For example, all vertices of a face should be coplanar.
 struct Cuboid
 {
-	Face Faces[CUBOID_F];
-	vec3 Vertices[CUBOID_V];
-	Cuboid () {}
+    // Min and max of AABB surrounding the Cuboid
+    vec3 AABBMin;
+    vec3 AABBMax;
+    // Faces that define the cuboid
+	std::vector<Face> Faces;
+
 	// Constructs a cuboid from a list of vertices.
 	// Vertices are ordered and indexed as such:
 	//	    .1------0
@@ -72,37 +71,61 @@ struct Cuboid
 	//	 |  .5--+---4
 	//	 |.'    | .'
 	//	 6------7'
-	Cuboid(std::vector<vec3> V)
+	Cuboid(std::vector<vec3> Vertices)
     {
-		if (V.size() != CUBOID_V)
+		if (Vertices.size() != CUBOID_V)
         {
 			return;
 		}
-		for (int i = 0; i < CUBOID_V; i++)
+
+        float MinX = std::numeric_limits<float>::infinity();
+        float MinY = std::numeric_limits<float>::infinity();
+        float MinZ = std::numeric_limits<float>::infinity();
+        float MaxX = - std::numeric_limits<float>::infinity();
+        float MaxY = - std::numeric_limits<float>::infinity();
+        float MaxZ = - std::numeric_limits<float>::infinity();
+        for (auto Vertex : Vertices)
         {
-			Vertices[i] = vec3(V[i]);
-		}
+            MinX = std::min(MinX, Vertex.x);
+            MinY = std::min(MinY, Vertex.y);
+            MinZ = std::min(MinZ, Vertex.z);
+            MaxX = std::max(MaxX, Vertex.x);
+            MaxY = std::max(MaxY, Vertex.y);
+            MaxZ = std::max(MaxZ, Vertex.z);
+        }
+        AABBMin = vec3{ MinX, MinY, MinZ };
+        AABBMax = vec3{ MaxX, MaxY, MaxZ };
+
 		for (int i = 0; i < CUBOID_F; i++)
         {
-			Faces[i] = Face(i, Vertices);
+            vec3 Point = Vertices[FaceCuboidMap[i][0]];
+            vec3 Normal = glm::normalize(glm::cross(
+                Vertices[FaceCuboidMap[i][1]] - Vertices[FaceCuboidMap[i][0]],
+                Vertices[FaceCuboidMap[i][2]] - Vertices[FaceCuboidMap[i][0]]));
+			Faces.emplace_back(Face(Point, Normal));
 		}
 	}
-	Cuboid(const Cuboid& C)
-    {
-		for (int i = 0; i < CUBOID_V; i++)
+
+	Cuboid(vec3 Min, vec3 Max, std::vector<Face> Faces)
+	{
+        this->AABBMin = Min;
+        this->AABBMax = Max;
+        for (auto F : Faces)
         {
-			Vertices[i] = vec3(C.Vertices[i]);
-		}
-		for (int i = 0; i < CUBOID_F; i++)
-        {
-			Faces[i] = Face(C.Faces[i]);
-		}
+            this->Faces.emplace_back(F);
+        }
 	}
-	// Return the vertex on face i with perimeter index j.
-	const vec3& GetVertex(int i, int j) const
-    {
-		return Vertices[FaceCuboidMap[i][j]];
-	}
+	//Cuboid(const Cuboid& C)
+    //{
+	//	for (int i = 0; i < CUBOID_V; i++)
+    //    {
+	//		Vertices[i] = vec3(C.Vertices[i]);
+	//	}
+	//	for (int i = 0; i < CUBOID_F; i++)
+    //    {
+	//		Faces[i] = Face(C.Faces[i]);
+	//	}
+	//}
 };
 
 struct Sphere
@@ -139,14 +162,8 @@ struct Bundle
 };
 
 // Data that defines the character in space
-struct alignas(32) CharacterBounds
+struct CharacterBounds
 {
-    __m256 TopVerticesXs;
-    __m256 TopVerticesYs;
-    __m256 TopVerticesZs;
-    __m256 BottomVerticesXs;
-    __m256 BottomVerticesYs;
-    __m256 BottomVerticesZs;
     // Player's team.
     int Team;
     // Location of character's eyes.
@@ -189,30 +206,12 @@ struct alignas(32) CharacterBounds
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10, -15, 5), yawR, z));
         TopVertices.emplace_back(eyes + glm::rotate(vec3(-10,  15, 5), yawR, z));
         // Radius of the base of the player. Wider when legs are moving.
-        float r = (speed > 0.1) ? 24 : 16;
+        float r = (speed > 0.1f) ? 24.0f : 16.0f;
         BottomVertices.emplace_back(base + glm::rotate(vec3( r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r,  r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3(-r, -r, 0), yawR, z));
         BottomVertices.emplace_back(base + glm::rotate(vec3( r, -r, 0), yawR, z));
 
-        TopVerticesXs = _mm256_set_ps(
-            TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x, 
-            TopVertices[0].x, TopVertices[1].x, TopVertices[2].x, TopVertices[3].x);
-        TopVerticesYs = _mm256_set_ps(
-            TopVertices[0].y, TopVertices[1].y, TopVertices[2].y, TopVertices[3].y, 
-            TopVertices[0].y, TopVertices[1].y, TopVertices[2].y, TopVertices[3].y);
-        TopVerticesZs = _mm256_set_ps(
-            TopVertices[0].z, TopVertices[1].z, TopVertices[2].z, TopVertices[3].z, 
-            TopVertices[0].z, TopVertices[1].z, TopVertices[2].z, TopVertices[3].z);
-        BottomVerticesXs = _mm256_set_ps(
-            BottomVertices[0].x, BottomVertices[1].x, BottomVertices[2].x, BottomVertices[3].x, 
-            BottomVertices[0].x, BottomVertices[1].x, BottomVertices[2].x, BottomVertices[3].x);
-        BottomVerticesYs = _mm256_set_ps(
-            BottomVertices[0].y, BottomVertices[1].y, BottomVertices[2].y, BottomVertices[3].y, 
-            BottomVertices[0].y, BottomVertices[1].y, BottomVertices[2].y, BottomVertices[3].y);
-        BottomVerticesZs = _mm256_set_ps(
-            BottomVertices[0].z, BottomVertices[1].z, BottomVertices[2].z, BottomVertices[3].z, 
-            BottomVertices[0].z, BottomVertices[1].z, BottomVertices[2].z, BottomVertices[3].z);
     }
 };
 
@@ -235,7 +234,7 @@ inline float IntersectionTime(
     {
         // Numerator of a plane/line intersection test.
         const vec3& Normal = C->Faces[i].Normal;
-        float Num = glm::dot(Normal, (C->GetVertex(i, 0) - Start));
+        float Num = glm::dot(Normal, (C->Faces[i].Point - Start));
         float Denom = glm::dot(Normal, Direction);
         if (Denom == 0)
         {
@@ -276,63 +275,63 @@ inline float IntersectionTime(
 // Uses SIMD for 8x throughput.
 inline bool IntersectsAll(
     const Cuboid* C,
-    __m256 StartXs,
-    __m256 StartYs,
-    __m256 StartZs,
-    __m256 EndXs,
-    __m256 EndYs,
-    __m256 EndZs)
+    __m128 StartXs,
+    __m128 StartYs,
+    __m128 StartZs,
+    __m128 EndXs,
+    __m128 EndYs,
+    __m128 EndZs)
 {
-    const __m256 Zero = _mm256_set1_ps(0);
-    __m256 EnterTimes = Zero;
-    __m256 ExitTimes = _mm256_set1_ps(1);
+    const __m128 Zero = _mm_set1_ps(0);
+    __m128 EnterTimes = Zero;
+    __m128 ExitTimes = _mm_set1_ps(1);
     for (int i = 0; i < CUBOID_F; i++)
     {
         const vec3& Normal = C->Faces[i].Normal;
-        __m256 NormalXs = _mm256_set1_ps(Normal.x);
-        __m256 NormalYs = _mm256_set1_ps(Normal.y);
-        __m256 NormalZs = _mm256_set1_ps(Normal.z);
-        const vec3& Vertex = C->GetVertex(i, 0);
-        __m256 Nums =
-            _mm256_fmadd_ps(
-                _mm256_sub_ps(_mm256_set1_ps(Vertex.x), StartXs),
+        __m128 NormalXs = _mm_set1_ps(Normal.x);
+        __m128 NormalYs = _mm_set1_ps(Normal.y);
+        __m128 NormalZs = _mm_set1_ps(Normal.z);
+        const vec3& Vertex = C->Faces[i].Point;
+        __m128 Nums =
+            _mm_fmadd_ps(
+                _mm_sub_ps(_mm_set1_ps(Vertex.x), StartXs),
                 NormalXs,
-                _mm256_fmadd_ps(
-                    _mm256_sub_ps(_mm256_set1_ps(Vertex.y), StartYs),
+                _mm_fmadd_ps(
+                    _mm_sub_ps(_mm_set1_ps(Vertex.y), StartYs),
                     NormalYs,
-                    _mm256_mul_ps(
-                        _mm256_sub_ps(_mm256_set1_ps(Vertex.z), StartZs),
+                    _mm_mul_ps(
+                        _mm_sub_ps(_mm_set1_ps(Vertex.z), StartZs),
                         NormalZs)));
-        __m256 Denoms =
-            _mm256_fmadd_ps(
-                _mm256_sub_ps(EndXs, StartXs),
+        __m128 Denoms =
+            _mm_fmadd_ps(
+                _mm_sub_ps(EndXs, StartXs),
                 NormalXs,
-                _mm256_fmadd_ps(
-                    _mm256_sub_ps(EndYs, StartYs),
+                _mm_fmadd_ps(
+                    _mm_sub_ps(EndYs, StartYs),
                     NormalYs,
-                    _mm256_mul_ps(_mm256_sub_ps(EndZs, StartZs), NormalZs)));
+                    _mm_mul_ps(_mm_sub_ps(EndZs, StartZs), NormalZs)));
         // A line segment is parallel to and outside of a face.
         if (0 !=
-            _mm256_movemask_ps(
-                _mm256_and_ps(
-                    _mm256_cmp_ps(Denoms, Zero, _CMP_EQ_OQ),
-                    _mm256_cmp_ps(Nums, Zero, _CMP_LE_OQ))))
+            _mm_movemask_ps(
+                _mm_and_ps(
+                    _mm_cmp_ps(Denoms, Zero, _CMP_EQ_OQ),
+                    _mm_cmp_ps(Nums, Zero, _CMP_LE_OQ))))
         {
             return false;
         }
-        __m256 Times = _mm256_div_ps(Nums, Denoms);
-        __m256 PositiveMask = _mm256_cmp_ps(Denoms, Zero, _CMP_GT_OS);
-        __m256 NegativeMask = _mm256_cmp_ps(Denoms, Zero, _CMP_LT_OS);
-        EnterTimes = _mm256_blendv_ps(
+        __m128 Times = _mm_div_ps(Nums, Denoms);
+        __m128 PositiveMask = _mm_cmp_ps(Denoms, Zero, _CMP_GT_OS);
+        __m128 NegativeMask = _mm_cmp_ps(Denoms, Zero, _CMP_LT_OS);
+        EnterTimes = _mm_blendv_ps(
             EnterTimes,
-            _mm256_max_ps(EnterTimes, Times),
+            _mm_max_ps(EnterTimes, Times),
             NegativeMask);
-        ExitTimes = _mm256_blendv_ps(
+        ExitTimes = _mm_blendv_ps(
             ExitTimes,
-            _mm256_min_ps(ExitTimes, Times),
+            _mm_min_ps(ExitTimes, Times),
             PositiveMask);
         if (0 !=
-            _mm256_movemask_ps(_mm256_cmp_ps(EnterTimes, ExitTimes, _CMP_GT_OS)))
+            _mm_movemask_ps(_mm_cmp_ps(EnterTimes, ExitTimes, _CMP_GT_OS)))
         {
             return false;
         }
@@ -350,39 +349,82 @@ inline bool IsBlocking(
     const CharacterBounds& Bounds,
     const Cuboid* C)
 {
-    __m256 StartXs = _mm256_set_ps(
-        Peeks[0].x, Peeks[0].x, Peeks[0].x, Peeks[0].x,
-        Peeks[1].x, Peeks[1].x, Peeks[1].x, Peeks[1].x);
-    __m256 StartYs = _mm256_set_ps(
-        Peeks[0].y, Peeks[0].y, Peeks[0].y, Peeks[0].y,
-        Peeks[1].y, Peeks[1].y, Peeks[1].y, Peeks[1].y);
-    __m256 StartZs = _mm256_set_ps(
-        Peeks[0].z, Peeks[0].z, Peeks[0].z, Peeks[0].z,
-        Peeks[1].z, Peeks[1].z, Peeks[1].z, Peeks[1].z);
-    if (
-        !IntersectsAll(
-            C,
-            StartXs, StartYs, StartZs,
-            Bounds.TopVerticesXs, Bounds.TopVerticesYs, Bounds.TopVerticesZs))
+    auto TopVerticesXs = _mm_set_ps(
+        Bounds.TopVertices[0].x, 
+        Bounds.TopVertices[1].x,
+        Bounds.TopVertices[2].x,
+        Bounds.TopVertices[3].x);
+    auto TopVerticesYs = _mm_set_ps(
+        Bounds.TopVertices[0].y, 
+        Bounds.TopVertices[1].y,
+        Bounds.TopVertices[2].y,
+        Bounds.TopVertices[3].y);
+    auto TopVerticesZs = _mm_set_ps(
+        Bounds.TopVertices[0].z, 
+        Bounds.TopVertices[1].z,
+        Bounds.TopVertices[2].z,
+        Bounds.TopVertices[3].z);
+    auto BottomVerticesXs = _mm_set_ps(
+        Bounds.BottomVertices[0].x, 
+        Bounds.BottomVertices[1].x,
+        Bounds.BottomVertices[2].x,
+        Bounds.BottomVertices[3].x);
+    auto BottomVerticesYs = _mm_set_ps(
+        Bounds.BottomVertices[0].y, 
+        Bounds.BottomVertices[1].y,
+        Bounds.BottomVertices[2].y,
+        Bounds.BottomVertices[3].y);
+    auto BottomVerticesZs = _mm_set_ps(
+        Bounds.BottomVertices[0].z, 
+        Bounds.BottomVertices[1].z,
+        Bounds.BottomVertices[2].z,
+        Bounds.BottomVertices[3].z);
+
+    auto StartXs = _mm_set_ps1(Peeks[0].x);
+    auto StartYs = _mm_set_ps1(Peeks[0].y);
+    auto StartZs = _mm_set_ps1(Peeks[0].z);
+    if (!IntersectsAll(
+        C,
+        StartXs, StartYs, StartZs,
+       TopVerticesXs, TopVerticesYs, TopVerticesZs))
     {
         return false;
     }
-    else
+
+    StartXs = _mm_set_ps1(Peeks[1].x);
+    StartYs = _mm_set_ps1(Peeks[1].y);
+    StartZs = _mm_set_ps1(Peeks[1].z);
+    if (!IntersectsAll(
+        C,
+        StartXs, StartYs, StartZs,
+       TopVerticesXs, TopVerticesYs, TopVerticesZs))
     {
-        StartXs = _mm256_set_ps(
-            Peeks[2].x, Peeks[2].x, Peeks[2].x, Peeks[2].x,
-            Peeks[3].x, Peeks[3].x, Peeks[3].x, Peeks[3].x);
-        StartYs = _mm256_set_ps(
-            Peeks[2].y, Peeks[2].y, Peeks[2].y, Peeks[2].y,
-            Peeks[3].y, Peeks[3].y, Peeks[3].y, Peeks[3].y);
-        StartZs = _mm256_set_ps(
-            Peeks[2].z, Peeks[2].z, Peeks[2].z, Peeks[2].z,
-            Peeks[3].z, Peeks[3].z, Peeks[3].z, Peeks[3].z);
-        return IntersectsAll(
-            C,
-            StartXs, StartYs, StartZs,
-            Bounds.BottomVerticesXs, Bounds.BottomVerticesYs, Bounds.BottomVerticesZs);
+        return false;
     }
+
+    StartXs = _mm_set_ps1(Peeks[2].x);
+    StartYs = _mm_set_ps1(Peeks[2].y);
+    StartZs = _mm_set_ps1(Peeks[2].z);
+    if (!IntersectsAll(
+        C,
+        StartXs, StartYs, StartZs,
+       BottomVerticesXs, BottomVerticesYs, BottomVerticesZs))
+    {
+        return false;
+    }
+
+    StartXs = _mm_set_ps1(Peeks[3].x);
+    StartYs = _mm_set_ps1(Peeks[3].y);
+    StartZs = _mm_set_ps1(Peeks[3].z);
+    if (!IntersectsAll(
+        C,
+        StartXs, StartYs, StartZs,
+       BottomVerticesXs, BottomVerticesYs, BottomVerticesZs))
+    {
+        return false;
+    }
+
+    return true;
 }
 
 // Checks sphere intersection for all line segments between
@@ -397,7 +439,7 @@ inline bool IsBlocking(
     // Unpack constant variables outside of loop for performance.
     const vec3 SphereCenter = OccludingSphere.Center;
     const float RadiusSquared = OccludingSphere.Radius * OccludingSphere.Radius;
-    for (int i = 0; i < Peeks.size(); i++)
+    for (auto i = 0U; i < Peeks.size(); i++)
     {
         vec3 PlayerToSphere = SphereCenter - Peeks[i];
         std::vector<vec3> Vertices;

@@ -6,7 +6,6 @@
 #include "GeometricPrimitives.h"
 #include "FastBVH.h"
 #include <vector>
-#include <deque>
 #include <memory>
 #include <glm/vec3.hpp>
 using glm::vec3;
@@ -33,9 +32,9 @@ class CullingController
     // Cache of pointers to cuboids that recently blocked LOS from
     // player i to enemy j. Accessed by CuboidCaches[i][j].
     const Cuboid* CuboidCaches[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE]
-        = { 0 };
+        = {{{0}}};
     // Timers that track the last time a cuboid in the cache blocked LOS.
-    int CacheTimers[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE] = { 0 };
+    int CacheTimers[MAX_CHARACTERS][MAX_CHARACTERS][CUBOID_CACHE_SIZE] = {{{0}}};
     // All occluding cuboids in the map.
     std::vector<Cuboid> Cuboids;
     // Bounding volume hierarchy containing cuboids.
@@ -53,7 +52,7 @@ class CullingController
     // How many frames pass between each cull.
     int CullingPeriod = 2;
     // Stores how many ticks character j remains visible to character i for.
-    int VisibilityTimers[MAX_CHARACTERS][MAX_CHARACTERS] = { 0 };
+    int VisibilityTimers[MAX_CHARACTERS][MAX_CHARACTERS] = {{0}};
     // How many ticks an enemy stays visible for after being revealed.
     int VisibilityTimerMax = CullingPeriod * 3;
     // Used to calculate short rolling average of frame times.

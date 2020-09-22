@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FastBVH/Vector3.h"
-#include "GeometricPrimitives.h"
+#include "Vector3.h"
+#include "../GeometricPrimitives.h"
 
 #include <cstdint>
 #include <utility>

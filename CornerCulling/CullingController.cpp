@@ -13,14 +13,16 @@ void CullingController::BeginPlay(char* mapName)
         CuboidCaches,
         0,
         MAX_CHARACTERS * MAX_CHARACTERS * CUBOID_CACHE_SIZE * sizeof(Cuboid*));
+
     // Add occluding cuboids.
-    for (std::vector<vec3> cuboidVertices : FileToCuboidVertices(mapName))
+    for (auto c: FileToCuboids(mapName))
     {
-        Cuboids.emplace_back(Cuboid(cuboidVertices));
+        Cuboids.emplace_back(c);
     }
+
+    // Build the cuboid BVH.
     if (Cuboids.size() > 0)
     {
-        // Build the cuboid BVH.
         FastBVH::BuildStrategy<float, 1> Builder;
         CuboidBoxConverter Converter;
         CuboidBVH = std::make_unique
@@ -30,7 +32,8 @@ void CullingController::BeginPlay(char* mapName)
             <Traverser<float, decltype(Intersector)>>
             (*CuboidBVH.get(), Intersector);
     }
-    // Add occluding spheres.
+
+    // TODO: Add occluding spheres, ma
 }
 
 void CullingController::Tick()
@@ -44,7 +47,7 @@ void CullingController::BenchmarkCull()
     auto Start = std::chrono::high_resolution_clock::now();
     Cull();
     auto Stop = std::chrono::high_resolution_clock::now();
-    int Delta = std::chrono::duration_cast<std::chrono::microseconds>(Stop - Start).count();
+    int Delta = int(std::chrono::duration_cast<std::chrono::microseconds>(Stop - Start).count());
     TotalTime += Delta;
     RollingTotalTime += Delta;
     RollingMaxTime = std::max(RollingMaxTime, Delta);
@@ -71,7 +74,7 @@ void CullingController::Cull()
 void CullingController::PopulateBundles()
 {
     BundleQueue.clear();
-    for (int i = 0; i < Characters.size(); i++)
+    for (auto i = 0U; i < Characters.size(); i++)
     {
         // Staggers culling across each CullingPeriod
         if (!IsAlive[i] || (((i + TotalTicks) % CullingPeriod) != 0))
@@ -86,7 +89,7 @@ void CullingController::PopulateBundles()
             MAX_PLAYER_SPEED);
         float MaxHorizontalDisplacement = lookahead * speed;
         float MaxVerticalDisplacement = 20;
-        for (int j = 0; j < Characters.size(); j++)
+        for (auto j = 0U; j < Characters.size(); j++)
         {
             if (VisibilityTimers[i][j] <= CullingPeriod
                 && IsAlive[j]
@@ -234,11 +237,11 @@ void CullingController::UpdateVisibility()
     }
     BundleQueue.clear();
     // Reveal
-    for (int i = 0; i < Characters.size(); i++)
+    for (auto i = 0U; i < Characters.size(); i++)
     {
         if (IsAlive[i])
         {
-            for (int j = 0; j < Characters.size(); j++)
+            for (auto j = 0U; j < Characters.size(); j++)
             {
                 if (IsAlive[j] && VisibilityTimers[i][j] > 0)
                 {
@@ -281,7 +284,7 @@ void CullingController::UpdateCharacters(
     float* Pitches,
     float* Speeds)
 {
-    for (int i = 0; i < Characters.size(); i++)
+    for (auto i = 0U; i < Characters.size(); i++)
     {
         IsAlive[i] = (Teams[i] > 1);
         if (IsAlive[i])

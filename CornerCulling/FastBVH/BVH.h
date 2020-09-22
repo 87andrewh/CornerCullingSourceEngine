@@ -60,7 +60,7 @@ class BVH final {
   //! \param n The nodes to assign to the BVH.
   BVH(NodeArray<Float>&& n, const ConstIterable<Primitive>& p) : nodes(std::move(n))
   {
-      for (int i = 0; i < p.size(); i++)
+      for (auto i = 0U; i < p.size(); i++)
       {
           primitives.emplace_back(&p[i]);
       }

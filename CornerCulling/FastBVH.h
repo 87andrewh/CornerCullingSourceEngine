@@ -23,24 +23,9 @@ namespace
         public:
             BBox<float> operator()(const Cuboid& C) const noexcept
             {
-                float MinX = std::numeric_limits<float>::infinity();
-                float MinY = std::numeric_limits<float>::infinity();
-                float MinZ = std::numeric_limits<float>::infinity();
-                float MaxX = - std::numeric_limits<float>::infinity();
-                float MaxY = - std::numeric_limits<float>::infinity();
-                float MaxZ = - std::numeric_limits<float>::infinity();
-                for (int i = 0; i < CUBOID_V; i++)
-                {
-                    MinX = std::min(MinX, C.Vertices[i].x);
-                    MinY = std::min(MinY, C.Vertices[i].y);
-                    MinZ = std::min(MinZ, C.Vertices[i].z);
-                    MaxX = std::max(MaxX, C.Vertices[i].x);
-                    MaxY = std::max(MaxY, C.Vertices[i].y);
-                    MaxZ = std::max(MaxZ, C.Vertices[i].z);
-                }
-                auto MinVector = Vector3<float>{MinX, MinY, MinZ};
-                auto MaxVector = Vector3<float>{MaxX, MaxY, MaxZ};
-                return BBox<float>(MinVector, MaxVector);
+                return BBox<float>(
+                    Vector3<float>{C.AABBMin.x, C.AABBMin.y, C.AABBMin.z},
+                    Vector3<float>{C.AABBMax.x, C.AABBMax.y, C.AABBMax.z});
             }
     };
     
