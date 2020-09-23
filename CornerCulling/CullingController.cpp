@@ -3,6 +3,8 @@
 #include <iostream>
 #include "CullingIO.h"
 
+#include "../extension.h"
+
 CullingController::CullingController() {}
 
 void CullingController::BeginPlay(char* mapName)
@@ -114,6 +116,20 @@ void CullingController::PopulateBundles()
 //   Integrate with server latency estimation tools.
 int CullingController::GetLatency(int i)
 {
+    IGamePlayer *pPlayer = playerhelpers->GetGamePlayer(i);
+    if (!pPlayer)
+	{
+		return 200;
+	}
+	else if (!pPlayer->IsConnected())
+	{
+		return 200;
+	}
+	else if (pPlayer->IsFakeClient())
+	{
+		return 0;
+	};
+
     return 200;
 }
 
