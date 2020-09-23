@@ -86,7 +86,7 @@ namespace FastBVH {
     {
         // Pop off the next node to work on.
         int ni = todo[stackptr].i;
-        Float near = todo[stackptr].mint;
+        Float nearest = todo[stackptr].mint;
         stackptr--;
         const auto& node(nodes[ni]);
 
