@@ -292,6 +292,7 @@ inline bool IntersectsAll(
         __m128 NormalYs = _mm_set1_ps(Normal.y);
         __m128 NormalZs = _mm_set1_ps(Normal.z);
         const vec3& Vertex = C->Faces[i].Point;
+#ifdef __FMA__  
         __m128 Nums =
             _mm_fmadd_ps(
                 _mm_sub_ps(_mm_set1_ps(Vertex.x), StartXs),
@@ -310,6 +311,34 @@ inline bool IntersectsAll(
                     _mm_sub_ps(EndYs, StartYs),
                     NormalYs,
                     _mm_mul_ps(_mm_sub_ps(EndZs, StartZs), NormalZs)));
+#else 
+        __m128 Nums =
+            _mm_add_ps(
+                _mm_mul_ps(
+                    _mm_sub_ps(_mm_set1_ps(Vertex.x), StartXs),
+                    NormalXs
+                ),
+                _mm_add_ps(
+                    _mm_mul_ps(
+                        _mm_sub_ps(_mm_set1_ps(Vertex.y), StartYs),
+                        NormalYs
+                    ),
+                    _mm_mul_ps(
+                        _mm_sub_ps(_mm_set1_ps(Vertex.z), StartZs),
+                        NormalZs)));
+        __m128 Denoms =
+            _mm_add_ps(
+                _mm_mul_ps(
+                    _mm_sub_ps(EndXs, StartXs),
+                    NormalXs
+                ),
+                _mm_add_ps(
+                    _mm_mul_ps(
+                        _mm_sub_ps(EndYs, StartYs),
+                        NormalYs
+                    ),
+                    _mm_mul_ps(_mm_sub_ps(EndZs, StartZs), NormalZs)));
+#endif
         // A line segment is parallel to and outside of a face.
         if (0 !=
             _mm_movemask_ps(
