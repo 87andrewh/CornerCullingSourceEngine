@@ -168,7 +168,6 @@ class ExtensionConfig(object):
       'GNUC',
     ]
     cxx.cflags += [
-      '-march=native',
       '-pipe',
       '-fno-strict-aliasing',
       '-Wall',
