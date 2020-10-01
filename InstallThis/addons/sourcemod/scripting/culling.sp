@@ -176,8 +176,10 @@ public Action:SoundHook(
     if (source < 1 || source > MaxClients)
     	return Plugin_Continue;
 
-    // Workaround for "headshot too loud" bug.
+    // Workarounds for "headshot too loud" bug.
     if (StrContains(sampleName, "bhit_helmet") != -1)
+    	return Plugin_Continue;
+    if (StrContains(sampleName, "headshot") != -1)
     	return Plugin_Continue;
 
     // Fix CSGO bad flag
@@ -210,7 +212,7 @@ public Action:SoundHook(
             // Fixes "self footsteps too loud" bug
             float fixedVolume = volume;
             if (clients[i] == source)
-                fixedVolume = volume * 0.5;
+                fixedVolume = volume * 0.45;
 
             EmitSoundToClient(
                     clients[i],
