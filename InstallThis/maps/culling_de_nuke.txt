@@ -1,8 +1,36 @@
+AABB        // B lower back wall
+321.62 -1375.96 -766.37
+1048.03 -1404.02 -607.99
+
+AABB        // B upper back wall
+278.7 -1336 -505.45
+1048  -1340 -644.57
+
+AABB        // Floor
+ 3000 -2368.03 -416
+-3000 -1468  -426
+
+AABB        // Floor
+ 3000 -1404   -416
+-3000  319.76 -426
+
+AABB        // Floor
+3000 -2368.03 -416
+480   319.76  -426
+
+AABB        // Floor
+ 416  -2368.03 -416
+-3000  319.76  -426
+
 AABB        // Loby ladder plate
+320 -878 -287.96
+128 -1169 -289.84
+
+AABB        // Lobby ladder plate
 268 -818 -288
 128 -656 -290
 
-AABB        // Loby ladder plate
+AABB        // Lobby ladder plate
 320 -878 -287.96
 128 -1169 -289.84
 
