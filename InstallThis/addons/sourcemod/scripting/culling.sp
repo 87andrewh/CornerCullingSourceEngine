@@ -182,6 +182,10 @@ public Action:SoundHook(
     if (StrContains(sampleName, "headshot") != -1)
     	return Plugin_Continue;
 
+    // Workaround for "molotov too loud" bug.
+    if (StrContains(sampleName, "kevlar") != -1)
+    	return Plugin_Continue;
+
     // Fix CSGO bad flag
     int fixedFlags = flags & ~(1 << 10);
 
