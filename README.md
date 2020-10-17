@@ -1,12 +1,15 @@
 # CornerCullingSourceEngine
 
-- Currently in open beta, working closely with 2 community servers.
-- Supports Dust2, Inferno, and part of Mirage.
-
-
-- Feel free to test it yourself with InstallThis.zip
-- If you encounter a problem, please open a GitHub issue.
+- In open beta, working closely with a few community servers and platforms.
+- Installable through "InstallThis"
+- If you encounter a problem, please open an issue or contact me
 
 TODO
-- Finish Mirage
-- Test compatibility with ~2011 era CPUS
+- Finish competitive maps (Overpass, Vertigo)
+- Contact Valve
+
+Feature Requests
+- Automatic updater (possibly with https://forums.alliedmods.net/showthread.php?t=169095)
+- Joining occluders, preventing "leaks" through thin corners
+- Anti-anti-flash
+- Smoke occlusion
