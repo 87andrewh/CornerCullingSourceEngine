@@ -5,11 +5,13 @@
 - If you encounter a problem, please open an issue or contact me
 
 TODO
-- Finish competitive maps (Overpass, Vertigo)
-- Contact Valve
+- Finish competitive maps (Vertigo)
+- Polish lookahead logic
+- Fill in "missed spots" in maps
 
-Feature Requests
+Next Features
+- Lookahead using velocity instead of speed
 - Automatic updater (possibly with https://forums.alliedmods.net/showthread.php?t=169095)
-- Joining occluders, preventing "leaks" through thin corners
+- Joined occluders, preventing "leaks" through thin corners
 - Anti-anti-flash
 - Smoke occlusion
