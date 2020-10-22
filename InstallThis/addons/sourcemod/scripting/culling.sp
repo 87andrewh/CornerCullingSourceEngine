@@ -49,7 +49,6 @@ public OnPluginStart()
     }
     AddNormalSoundHook(SoundHook)
 
-    isFFA = GetConVarInt(FindConVar("mp_teammates_are_enemies")) == 1;
     maxLookahead = CreateConVar(
             "culling_maxlookahead",
             "120",
@@ -57,6 +56,11 @@ public OnPluginStart()
     AutoExecConfig(true, "culling");
 
     UpdateCullingMap();
+}
+
+public void OnConfigsExecuted()
+{
+    isFFA = GetConVarInt(FindConVar("mp_teammates_are_enemies")) == 1;
 }
 
 public void OnMapStart() {
