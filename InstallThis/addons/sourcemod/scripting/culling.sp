@@ -9,9 +9,9 @@ public Plugin myinfo =
 {
 	name =			"Culling",
 	author =		"Andrew H, Playa, old syntax by lkb",
-	description = 	"Improved anti-wallhack",
+	description =	"Improved anti-wallhack",
 	version =		"1.0.0.0",
-	url = 			"https://github.com/87andrewh/CornerCulling"
+	url =			"https://github.com/87andrewh/CornerCulling"
 };
 
 bool enabled = true;
@@ -111,7 +111,7 @@ stock void UpdateCullingMap()
 	}
 	else
 	{
-		SetCullingMap(mapName, tickRate, sizeof(mapName));
+		SetCullingMap(mapName, tickRate, 110);
 	}
 }
 
@@ -165,7 +165,18 @@ public void OnGameFrame()
 
 // Discretizes (reduces position accuracy of) sounds from enemies
 // that are not visible to a client.
-public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char sampleName[PLATFORM_MAX_PATH], int& source, int& channel, float& volume, int& level, int& pitch, int& flags, char soundEntry[PLATFORM_MAX_PATH], int& seed)
+public Action SoundHook(
+		int clients[MAXPLAYERS],
+		int& numClients,
+		char sampleName[PLATFORM_MAX_PATH],
+		int& source,
+		int& channel,
+		float& volume,
+		int& level,
+		int& pitch,
+		int& flags,
+		char soundEntry[PLATFORM_MAX_PATH],
+		int& seed)
 {
 	if (source < 1 || source > MaxClients)
 		return Plugin_Continue;

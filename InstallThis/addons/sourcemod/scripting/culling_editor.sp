@@ -112,5 +112,5 @@ stock void UpdateCullingMap()
 {
 	GetCurrentMap(mapName, sizeof(mapName));
 	int tickRate = RoundToNearest(1.0 / GetTickInterval());
-	SetCullingMap(mapName, tickRate, sizeof(mapName));
+	SetCullingMap(mapName, tickRate, 110);
 }
