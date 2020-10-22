@@ -8,7 +8,7 @@ There are a few features that make this implementation great for competitive CS:
 - Strict culling with ray casts
 - Guaranteed to be optimistic (no popping) for players under the latency treshold set in culling.cfg
 
-Occluders are placed manually, so we do not automatically support community maps.
+Occluders are placed manually, so we do not automatically support community maps. I suspect that there are a still a few placement errors, so feedback is welcome!
 
 ### Installation
 - Install SourceMod  
