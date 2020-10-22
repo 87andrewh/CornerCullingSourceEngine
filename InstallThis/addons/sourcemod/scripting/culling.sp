@@ -107,7 +107,7 @@ stock void UpdateCullingMap()
 	}
 	else
 	{
-		SetCullingMap(mapName, tickRate, 110);
+		SetCullingMap(mapName, tickRate, sizeof(mapName));
 	}
 }
 

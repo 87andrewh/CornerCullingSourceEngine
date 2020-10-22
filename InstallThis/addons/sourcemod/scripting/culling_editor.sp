@@ -110,7 +110,7 @@ float[] GetAimPosition()
 
 stock void UpdateCullingMap()
 {
-	GetCurrentMap(mapName, 127);
+	GetCurrentMap(mapName, sizeof(mapName));
 	int tickRate = RoundToNearest(1.0 / GetTickInterval());
-	SetCullingMap(mapName, tickRate, 110);
+	SetCullingMap(mapName, tickRate, sizeof(mapName));
 }
