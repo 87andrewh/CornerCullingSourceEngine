@@ -1,22 +1,31 @@
 # CornerCullingSourceEngine
 
-- In open beta, working closely with a few community servers and platforms.
-- Installable through "InstallThis"
-- If you encounter a problem, please open an issue or contact me
+### Introduction
+This is the latest in a long line of occlusion culling / anti-wallhack systems.  
+There are a few features that make this implementation great for competitive CS:GO
+- Open source
+- Good performance (1-2% of frame time for 10 v 10 128-tick Dust2)
+- Strict culling with ray casts
+- Guaranteed to be optimistic (no popping) for players under the latency treshold set in culling.cfg
 
-# TODO
-- Polish lookahead logic
-- Find and fill "missed spots" in maps
+Occluders are placed manually, so we do not automatically support community maps.
 
-# Next Features
-- Lookahead using velocity instead of speed
-- Automatic updater (possibly with https://forums.alliedmods.net/showthread.php?t=169095)
-- Joined occluders, preventing "leaks" through thin corners
-- Anti-anti-flash
-- Smoke occlusion
+### Installation
+- Install SourceMod  
+- Drag the contents of "InstallThis" into csgo-ds/csgo  
 
-# Special thanks to
-Paul "arkem" Chamberlain
-Garrett Weinzierl at PlayWin
-DJPlaya, lekobyroxa, and the incredible AlliedModders community
-TURF! community servers
+### Next Steps
+- Polish lookahead logic  
+- Find and fill "missed spots" in maps  
+- Calculate lookahead with velocity instead of speed  
+- Update automatially (perhaps https://forums.alliedmods.net/showthread.php?t=169095)  
+- Join occluders, preventing "leaks" through thin corners  
+- Anti-anti-flash  
+- Smoke occlusion  
+
+### Special Thanks
+Paul "arkem" Chamberlain  
+Garrett Weinzierl at PlayWin  
+DJPlaya, lekobyroxa, and the AlliedModders community  
+Challengermode esports platform  
+TURF! community servers  
