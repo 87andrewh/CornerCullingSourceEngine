@@ -4,14 +4,19 @@
 - Installable through "InstallThis"
 - If you encounter a problem, please open an issue or contact me
 
-TODO
-- Finish competitive maps (Vertigo)
+# TODO
 - Polish lookahead logic
-- Fill in "missed spots" in maps
+- Find and fill "missed spots" in maps
 
-Next Features
+# Next Features
 - Lookahead using velocity instead of speed
 - Automatic updater (possibly with https://forums.alliedmods.net/showthread.php?t=169095)
 - Joined occluders, preventing "leaks" through thin corners
 - Anti-anti-flash
 - Smoke occlusion
+
+# Special thanks to
+Paul "arkem" Chamberlain
+Garrett Weinzierl at PlayWin
+DJPlaya, lekobyroxa, and the incredible AlliedModders community
+TURF! community servers
