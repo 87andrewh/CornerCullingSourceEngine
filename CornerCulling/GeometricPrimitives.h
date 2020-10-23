@@ -415,7 +415,7 @@ inline bool IsBlocking(
     if (!IntersectsAll(
         C,
         StartXs, StartYs, StartZs,
-       TopVerticesXs, TopVerticesYs, TopVerticesZs))
+        TopVerticesXs, TopVerticesYs, TopVerticesZs))
     {
         return false;
     }
