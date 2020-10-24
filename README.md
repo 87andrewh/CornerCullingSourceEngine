@@ -17,6 +17,7 @@ All feedback is welcome!
 - Drag the contents of "InstallThis" into csgo-ds/csgo  
 
 ### Adding Occluders to Custom Maps
+- Note: This process can be quite laborious. If you have many complex custom maps, I reccomend using a different anti-wallhack.
 - Create a file for your custum map, csgo/maps/culling_<MAPNAME>.txt
 - Compile and install culling_editor.sp
 - To prevent your CS:GO client from crashing, you may have to unload culling_editor until after your client joins
