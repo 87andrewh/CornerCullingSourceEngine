@@ -19,9 +19,11 @@ All feedback is welcome!
 ### Adding Occluders to Custom Maps
 - Note: This process can be quite laborious. If you have many complex custom maps, I reccomend using a different anti-wallhack.
 - Create a file for your custum map, csgo/maps/culling_<MAPNAME>.txt
+  - To prevent crashes, you may need a placeholder occluder (AABB from 0 0 0 to 1 1 1) until you add more
 - Compile and install culling_editor.sp
-- To prevent your CS:GO client from crashing, you may have to unload culling_editor until after your client joins
-- Get the coordinates of a point by looking at it and attacking. You must be client #1
+  - To prevent your CS:GO client from crashing, you may have to unload culling_editor until after your client joins
+  - The editor attemps to display the top-most occluder, although it may miss edges if vertices are inside the map
+  - Print the coordinates of a point to console by looking at it and attacking. You must be client #1
 - An axis-aligned bounding box is declared by "AABB" and defined by the coordinates of two opposite vertices
 - A cuboid is declared by "cuboid" and defined by
   - offset
@@ -30,7 +32,7 @@ All feedback is welcome!
   - 8 vertices in the order below
 - A cuboid is usually best defined with 8 raw vertex coordinates, "0 0 0" offset, "1 1 1" scale, and "0 0 0" rotation
 - The user must ensure that the vertices of a cuboid's faces are coplanar. Failure will cause undefined behavior
-- You can loosely check your work with "r_drawothermodels 2" but beware that it is not as rigorous as testing with a real wallhack
+- You can loosely check your work with "r_drawothermodels 2"; however, it is not as rigorous as testing with a real wallhack
 
 ```  
    .1------0
@@ -42,8 +44,8 @@ All feedback is welcome!
 6------7'
 ```
 
-### Known Issues
-- Mirage sandwich
+### Issue Log
+- Mirage sandwich (Probably fixed 10/24/20)
 
 ### Future Work
 - Polish lookahead logic  
@@ -53,6 +55,10 @@ All feedback is welcome!
 - Join occluders, preventing "leaks" through thin corners  
 - Anti-anti-flash  
 - Smoke occlusion  
+
+### Technical details
+- You can find more details alongisde the original UE4 implementation:
+https://github.com/87andrewh/CornerCulling
 
 ### Special Thanks
 Paul "arkem" Chamberlain  
