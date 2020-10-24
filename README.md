@@ -16,7 +16,35 @@ All feedback is welcome!
 - Install SourceMod  
 - Drag the contents of "InstallThis" into csgo-ds/csgo  
 
-### Next Steps
+### Adding Occluders to Custom Maps
+- Create a file for your custum map, csgo/maps/culling_<MAPNAME>.txt
+- Compile and install culling_editor.sp
+- To prevent your CS:GO client from crashing, you may have to unload culling_editor until after your client joins
+- Get the coordinates of a point by looking at it and attacking. You must be client #1
+- An axis-aligned bounding box is declared by "AABB" and defined by the coordinates of two opposite vertices
+- A cuboid is declared by "cuboid" and defined by
+  - offset
+  - scale
+  - rotation
+  - 8 vertices in the order below
+- A cuboid is usually best defined with 8 raw vertex coordinates, "0 0 0" offset, "1 1 1" scale, and "0 0 0" rotation
+- The user must ensure that the vertices of a cuboid's faces are coplanar. Failure will cause undefined behavior
+- You can loosely check your work with "r_drawothermodels 2" but beware that it is not as rigorous as testing with a real wallhack
+
+```  
+   .1------0
+ .' |    .'|
+2---+--3'  |
+|   |  |   |
+|  .5--+---4
+|.'    | .'
+6------7'
+```
+
+### Known Issues
+- Mirage sandwich
+
+### Future Work
 - Polish lookahead logic  
 - Find and fill "missed spots" in maps  
 - Calculate lookahead with velocity instead of speed  
