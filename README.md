@@ -47,6 +47,11 @@ All feedback is welcome!
 ### Issue Log
 - Mirage sandwich (Probably fixed 10/24/20)
 
+### Current Work
+- (mostly) Automatic mesh generation for alternative algorithm
+- The complete package may require a lot of code and time
+![](scan_cbbl.png)
+
 ### Future Work
 - Polish lookahead logic  
 - Find and fill "missed spots" in maps  
