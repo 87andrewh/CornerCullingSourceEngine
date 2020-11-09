@@ -47,9 +47,11 @@ All feedback is welcome!
 ### Issue Log
 - Mirage sandwich (Probably fixed 10/24/20)
 
-### Current Work
-- (mostly) Automatic mesh generation for alternative algorithm
-- The complete package may require a lot of code and time
+### Experimental
+- Automatic mesh generation for an alternative occlusion culling algorithm
+- While the mesh generation is mostly fine, save for a few transparency issues, the necessary triangle intersection and other integration code will take a fair bit of work.
+- Also, you may wonder why I made the seemingly insane decision to use the Source ray tracing system to generate my own mesh to feed into my own ray tracing system. The reason is that one needs to "relax" the mesh to guarantee correctness. Consider peeking through a 1-pixel gap in mid doors. A ray trace against the in-game mesh cannot check every pixel every frame. You have to relax the mesh by pushing every vertex inward--by a distance determined by the resolution of the player bounding mesh that you trace against.
+- However, in a non-tournament setting, this edge case shouldn't matter. I don't think it even matters for a platform like FACEIT. Also, there are a few community anti-wallhacks that operate with the Source ray tracing system, but the ones I'm aware of cost money. I hope I will eventually find a few weeks to finish my mesh system or fix SMAC. 
 ![](scan_cbbl.png)
 
 ### Future Work
@@ -62,7 +64,7 @@ All feedback is welcome!
 - Smoke occlusion  
 
 ### Technical details
-- You can find more details alongisde the original UE4 implementation:
+- You can find more details with the original UE4 implementation:
 https://github.com/87andrewh/CornerCulling
 
 ### Special Thanks
